@@ -23,7 +23,7 @@ lazy val commonSettings = Seq(
   // Compile options
   updateImpactOpenBrowser := false,
   compile in Compile := (compile in Compile).dependsOn(formatAll).value,
-  mainClass in assembly := Some("com.markblokpoel.lanag.core.util.DefaultMain"),
+  mainClass in assembly := Some("com.markblokpoel.lanag.adaptive.DefaultMain"),
   test in Test := (test in Test).dependsOn(checkFormat).value,
   formatAll := {
     (scalafmt in Compile).value
