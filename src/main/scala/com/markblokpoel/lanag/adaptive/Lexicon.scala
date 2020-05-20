@@ -77,8 +77,8 @@ case class Lexicon(signals: List[StringSignal], referents: List[StringReferent],
 }
 
 case object Lexicon {
-  def allPossibleLexicons(signals: List[StringSignal], referents: List[StringReferent]): Set[Lexicon] = {
-    val length1d = signals.length * referents.length
+  def allPossibleLexicons(signals: Set[StringSignal], referents: Set[StringReferent]): Set[Lexicon] = {
+    val length1d = signals.size * referents.size
 
     def apl(curLength: Int): Set[List[Double]] = {
       if(curLength == length1d) Set(List.empty)
@@ -91,6 +91,6 @@ case object Lexicon {
     }
 
     apl(0)
-      .map(lex1d => Lexicon(signals, referents, lex1d.sliding(referents.length, referents.length).toList))
+      .map(lex1d => Lexicon(signals.toList, referents.toList, lex1d.sliding(referents.size, referents.size).toList))
   }
 }
