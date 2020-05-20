@@ -1,0 +1,11 @@
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.14.5")
+addSbtPlugin("com.github.gseitz" % "sbt-release" % "1.0.9")
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.2") // Uses php commandline tool, must be installed on system
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.0-M5")
+addSbtPlugin("com.timushev.sbt" % "sbt-updates" % "0.4.0")
+addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages" % "0.6.3")
+addSbtPlugin("com.updateimpact" % "updateimpact-sbt-plugin" % "2.1.3")
+addSbtPlugin("org.xerial.sbt" % "sbt-sonatype" % "2.5")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.6")
+addSbtPlugin("com.geirsson" % "sbt-scalafmt" % "1.5.1")
+addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.3.2")
