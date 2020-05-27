@@ -1,6 +1,7 @@
 package com.markblokpoel.lanag.adaptive
 
 import com.markblokpoel.probability4scala.ConditionalDistribution
+import com.markblokpoel.probability4scala.datastructures.BigNatural
 
 case class Lexicon(signals: List[StringSignal], referents: List[StringReferent], data: List[List[Double]]) {
   require(data.nonEmpty, "data is empty")
@@ -27,9 +28,9 @@ case class Lexicon(signals: List[StringSignal], referents: List[StringReferent],
       }
     })
 
-    val map: Map[(StringReferent, StringSignal), BigDecimal]=
+    val map: Map[(StringReferent, StringSignal), BigNatural]=
       (for(ri <- referents.indices; si <- signals.indices) yield {
-        (referents(ri), signals(si)) -> BigDecimal(newData(si)(ri))
+        (referents(ri), signals(si)) -> BigNatural(newData(si)(ri))
       }).toMap
 
     ConditionalDistribution(referents.toSet, signals.toSet, map)
@@ -49,9 +50,9 @@ case class Lexicon(signals: List[StringSignal], referents: List[StringReferent],
       }
     })
 
-    val map: Map[(StringSignal, StringReferent), BigDecimal]=
+    val map: Map[(StringSignal, StringReferent), BigNatural]=
       (for(ri <- referents.indices; si <- signals.indices) yield {
-        (signals(si), referents(ri)) -> BigDecimal(newData(si)(ri))
+        (signals(si), referents(ri)) -> BigNatural(newData(si)(ri))
       }).toMap
 
     ConditionalDistribution(signals.toSet, referents.toSet, map)

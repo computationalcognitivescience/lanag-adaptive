@@ -1,7 +1,9 @@
 package com.markblokpoel.lanag.adaptive
 
-import com.markblokpoel.probability4scala.{Distribution, ConditionalDistribution}
+import com.markblokpoel.probability4scala.{ConditionalDistribution, Distribution}
 import com.markblokpoel.probability4scala.Implicits._
+import com.markblokpoel.probability4scala.DistributionHelpers._
+import com.markblokpoel.probability4scala.datastructures.BigNatural
 
 case class AdaptiveAgent(order: Int,
                          signals: Set[StringSignal],
@@ -10,9 +12,11 @@ case class AdaptiveAgent(order: Int,
                          lexiconPriors: Distribution[Lexicon],
                          signalPriors: Distribution[StringSignal],
                          referentPriors: Distribution[StringReferent],
-                         signalCosts : Map[StringSignal, Double],
+                         signalCosts : Map[StringSignal, BigNatural],
                          beta: Double,
                          entropyThreshold: Double) {
+
+  private val signalCostsAsDistr = new Distribution(signalCosts.keySet, signalCosts)
 
 //  def speak(intention: StringReferent): MetaSignal = ???
 //
@@ -21,65 +25,65 @@ case class AdaptiveAgent(order: Int,
   def addObservation(signalPair: (StringSignal, StringSignal)): AdaptiveAgent =
     AdaptiveAgent(order, signals, referents, signalPair :: history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
 
-  def l0(lexicon: Lexicon): ConditionalDistribution[StringReferent, StringSignal] = lexicon.deltaL
-
-  def s0(lexicon: Lexicon): ConditionalDistribution[StringSignal, StringReferent] = lexicon.deltaS
-
-  def l(distribution: ConditionalDistribution[StringSignal, StringReferent]): ConditionalDistribution[StringReferent, StringSignal] =
-    distribution.bayes(referentPriors)
-
-  def s(distribution: ConditionalDistribution[StringReferent, StringSignal]): ConditionalDistribution[StringSignal, StringReferent] = {
-    val ln_1 = distribution.bayes(signalPriors)
-    val newDistribution = for((signal, referent) <- ln_1.distribution.keySet) yield {
-      (signal, referent) -> math.exp(beta * math.log(ln_1.distribution((signal, referent)).doubleValue) - signalCosts(signal))
-    }
-    ConditionalDistribution(distribution.domainV2, distribution.domainV1, newDistribution.toMap)
-  }
-
+  // top level wrapper
   def s(n: Int, lexicon: Lexicon): ConditionalDistribution[StringSignal, StringReferent] = {
     if(n==0) s0(lexicon)
     else s(l(n-1, lexicon))
   }
 
+  // top level wrapper
   def l(n: Int, lexicon: Lexicon): ConditionalDistribution[StringReferent, StringSignal] = {
     if(n==0) l0(lexicon)
     else l(s(n, lexicon))
   }
 
-  def likelihood(lexicon: Lexicon): BigDecimal = {
+  // Eq 7?
+  def s0(lexicon: Lexicon): ConditionalDistribution[StringSignal, StringReferent] = lexicon.deltaS
+
+  // Eq 6
+  def l0(lexicon: Lexicon): ConditionalDistribution[StringReferent, StringSignal] = lexicon.deltaL
+
+  // Eq 5
+  def l(distribution: ConditionalDistribution[StringSignal, StringReferent]): ConditionalDistribution[StringReferent, StringSignal] =
+    distribution.bayes(referentPriors)
+
+  // Eq 4: Sn(s | r, Lex) propto exp(alpha log L_{n-1}(r | s, Lex) - cost(s))
+  def s(distribution: ConditionalDistribution[StringReferent, StringSignal]): ConditionalDistribution[StringSignal, StringReferent] =
+    exp(beta * log(distribution.bayes(signalPriors)) -- signalCostsAsDistr)
+
+  // Eq 3: PrLn(Lex | d)
+  def likelihood(lexicon: Lexicon): BigNatural = {
     val speakerPerspective = s(order, lexicon)
     val listenerPerspective = l(order, lexicon)
     val lexiconLikelihood =
       (for((s1,s2) <- history) yield {
         (for(r <- referents) yield {
           speakerPerspective.pr(s1 | r) * listenerPerspective.pr(r | s2)
-        }).sum
-      }).product
+        }).fold(0.toBigNatural)(_ + _)
+      }).fold(0.toBigNatural)(_ * _)
     lexiconLikelihood * lexiconPriors.pr(lexicon)
   }
 
+  // Eq 2: Ln(r | s, d)
   def l: ConditionalDistribution[StringReferent, StringSignal] = {
-    val parts =
+    val inner =
       for(lexicon <- Lexicon.allPossibleLexicons(signals, referents)) yield {
         l(order, lexicon) * likelihood(lexicon)
       }
-    parts.tail.foldLeft(parts.head)((acc, p) => acc + p)
+    inner.tail.foldLeft(inner.head)((acc, p) => acc + p)
   }
 
-  // this need to be rewritten
+  // Eq 1: Sn(s | r, d) propto ..
   def s: ConditionalDistribution[StringSignal, StringReferent] = {
-    val parts =
+    val inner: Set[ConditionalDistribution[StringSignal, StringReferent]] =
       (for(lexicon <- Lexicon.allPossibleLexicons(signals, referents)) yield {
-        l(order - 1, lexicon) * likelihood(lexicon)
+        l(order - 1, lexicon).bayes(signalPriors) * likelihood(lexicon)
       })
-    val sum = parts.tail.foldLeft(parts.head)((acc, p) => acc + p).bayes(signalPriors)
+    val sum: ConditionalDistribution[StringSignal, StringReferent] =
+      inner.tail.foldLeft(inner.head)((acc, p) => acc + p)
 
-    val newDistribution = for((signal, referent) <- sum.distribution.keySet) yield {
-      (signal, referent) -> math.exp(beta * math.log(sum.distribution((signal, referent)).doubleValue) - signalCosts(signal))
-    }
-    ConditionalDistribution(sum.domainV1, sum.domainV2, newDistribution.toMap)
+    exp(beta * log(sum) -- signalCostsAsDistr)
   }
-
 }
 
 case object AdaptiveAgent {
@@ -92,7 +96,7 @@ case object AdaptiveAgent {
     val signalPriors = signals.uniformDistribution
     val referentPriors = referents.uniformDistribution
     val lexiconPriors = Lexicon.allPossibleLexicons(signals, referents).uniformDistribution
-    val signalCosts = signals.map(_ -> 0.0).toMap
+    val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
     AdaptiveAgent(order, signals, referents, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
   }
 }
