@@ -67,28 +67,16 @@ abstract class AdaptiveAgent(order: Int,
 
   // Eq 1: Sn(s | r, d) propto ..
   protected def s: ConditionalDistribution[StringSignal, StringReferent] = {
-    val inner: Set[ConditionalDistribution[StringSignal, StringReferent]] =
-      (for(lexicon <- Lexicon.allPossibleLexicons(signals, referents)) yield {
+    val inner: List[ConditionalDistribution[StringSignal, StringReferent]] =
+      (for(lexicon <- Lexicon.allPossibleLexicons(signals, referents).toList) yield {
         l(order - 1, lexicon).bayes(signalPriors) * likelihood(lexicon)
       })
+
+    inner.foreach(_.cpt())
+
     val sum: ConditionalDistribution[StringSignal, StringReferent] =
       inner.tail.foldLeft(inner.head)((acc, p) => acc + p)
 
     exp(log(sum) * beta -- signalCostsAsDistr)
   }
 }
-
-//case object AdaptiveAgent {
-//  def apply(order: Int,
-//            signals: Set[StringSignal],
-//            referents: Set[StringReferent],
-//            history: List[(StringSignal, StringSignal)],
-//            beta: Double,
-//            entropyThreshold: Double): AdaptiveAgent = {
-//    val signalPriors = signals.uniformDistribution
-//    val referentPriors = referents.uniformDistribution
-//    val lexiconPriors = Lexicon.allPossibleLexicons(signals, referents).uniformDistribution
-//    val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
-//    AdaptiveAgent(order, signals, referents, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-//  }
-//}

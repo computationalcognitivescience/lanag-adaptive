@@ -2,6 +2,7 @@ package com.markblokpoel.lanag.adaptive
 
 import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.datastructures.BigNatural
+import com.markblokpoel.probability4scala.Implicits._
 
 case class Initiator(order: Int,
                      signals: Set[StringSignal],
@@ -20,7 +21,8 @@ case class Initiator(order: Int,
   def nextIntention(intention: StringReferent): Initiator =
     Initiator(order, signals, referents, intention, None, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
 
-  def initialSpeak(intendedReferent: StringReferent): (MetaSignal, Initiator, InitialInitiatorData) = {
+  def initialSpeak: (MetaSignal, Initiator, InitialInitiatorData) = {
+    s.cpt()
     val posteriorSignalDistribution = s.pr(intendedReferent)
 
     // we ignore entropy
@@ -56,5 +58,22 @@ case class Initiator(order: Int,
         val initiatorData = InitiatorData(intendedReferent, inferredReferent, metaSignal, listenEntropy)
         (metaSignal, updatedAgent, initiatorData)
     }
+  }
+}
+
+case object Initiator {
+  def apply(order: Int,
+            signals: Set[StringSignal],
+            referents: Set[StringReferent],
+            intendedReferent: StringReferent,
+            previousSignal: Option[StringSignal],
+            history: List[(StringSignal, StringSignal)],
+            beta: BigNatural,
+            entropyThreshold: BigNatural): Initiator = {
+    val signalPriors = signals.uniformDistribution
+    val referentPriors = referents.uniformDistribution
+    val lexiconPriors = Lexicon.allPossibleLexicons(signals, referents).uniformDistribution
+    val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
+    Initiator(order, signals, referents, intendedReferent, previousSignal, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
   }
 }

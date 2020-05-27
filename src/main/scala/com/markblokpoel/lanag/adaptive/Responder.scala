@@ -2,6 +2,7 @@ package com.markblokpoel.lanag.adaptive
 
 import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.datastructures.BigNatural
+import com.markblokpoel.probability4scala.Implicits._
 
 case class Responder(order: Int,
                      signals: Set[StringSignal],
@@ -37,5 +38,20 @@ case class Responder(order: Int,
 
       (metaSignal, updatedResponder, responderData)
     }
+  }
+}
+
+case object Responder {
+  def apply(order: Int,
+            signals: Set[StringSignal],
+            referents: Set[StringReferent],
+            history: List[(StringSignal, StringSignal)],
+            beta: BigNatural,
+            entropyThreshold: BigNatural): Responder = {
+    val signalPriors = signals.uniformDistribution
+    val referentPriors = referents.uniformDistribution
+    val lexiconPriors = Lexicon.allPossibleLexicons(signals, referents).uniformDistribution
+    val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
+    Responder(order, signals, referents, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
   }
 }

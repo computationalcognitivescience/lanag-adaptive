@@ -58,6 +58,17 @@ case class Lexicon(signals: List[StringSignal], referents: List[StringReferent],
     ConditionalDistribution(signals.toSet, referents.toSet, map)
   }
 
+  /**
+   * Do all signals refer to at least 1 referent, and do all referent have at least 1 signal
+   * that refers to it?
+   * @return
+   */
+  def isConsistent: Boolean = {
+    val signalsHaveAtLeastOneReferent = data.forall(_.exists(_ > 0))
+    val referentsHaveAtLeastOneSignal = data.transpose.forall(_.exists(_ > 0))
+    signalsHaveAtLeastOneReferent && referentsHaveAtLeastOneSignal
+  }
+
   def maxIndexOfColumn(column: Int): Int = {
     // find maximum in column $column, and return max value and its index
     val columnValues = Array.ofDim[Double](vocabularySize)
@@ -93,5 +104,6 @@ case object Lexicon {
 
     apl(0)
       .map(lex1d => Lexicon(signals.toList, referents.toList, lex1d.sliding(referents.size, referents.size).toList))
+      .filter(_.isConsistent)
   }
 }
