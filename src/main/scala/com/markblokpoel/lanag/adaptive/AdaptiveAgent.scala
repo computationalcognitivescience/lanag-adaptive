@@ -5,34 +5,26 @@ import com.markblokpoel.probability4scala.Implicits._
 import com.markblokpoel.probability4scala.DistributionHelpers._
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
-case class AdaptiveAgent(order: Int,
-                         signals: Set[StringSignal],
-                         referents: Set[StringReferent],
-                         history: List[(StringSignal, StringSignal)],
-                         lexiconPriors: Distribution[Lexicon],
-                         signalPriors: Distribution[StringSignal],
-                         referentPriors: Distribution[StringReferent],
-                         signalCosts : Map[StringSignal, BigNatural],
-                         beta: Double,
-                         entropyThreshold: Double) {
+abstract class AdaptiveAgent(order: Int,
+                             signals: Set[StringSignal],
+                             referents: Set[StringReferent],
+                             history: List[(StringSignal, StringSignal)],
+                             lexiconPriors: Distribution[Lexicon],
+                             signalPriors: Distribution[StringSignal],
+                             referentPriors: Distribution[StringReferent],
+                             signalCosts: Map[StringSignal, BigNatural],
+                             beta: BigNatural) {
 
-  private val signalCostsAsDistr = new Distribution(signalCosts.keySet, signalCosts)
+  protected val signalCostsAsDistr = new Distribution(signalCosts.keySet, signalCosts)
 
-//  def speak(intention: StringReferent): MetaSignal = ???
-//
-//  def listen(signal: StringSignal): StringReferent = ???
+  def listenAndRespond(signal: StringSignal): (MetaSignal, AdaptiveAgent, Data)
 
-  def addObservation(signalPair: (StringSignal, StringSignal)): AdaptiveAgent =
-    AdaptiveAgent(order, signals, referents, signalPair :: history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-
-  // top level wrapper
-  def s(n: Int, lexicon: Lexicon): ConditionalDistribution[StringSignal, StringReferent] = {
+  private def s(n: Int, lexicon: Lexicon): ConditionalDistribution[StringSignal, StringReferent] = {
     if(n==0) s0(lexicon)
     else s(l(n-1, lexicon))
   }
 
-  // top level wrapper
-  def l(n: Int, lexicon: Lexicon): ConditionalDistribution[StringReferent, StringSignal] = {
+  private def l(n: Int, lexicon: Lexicon): ConditionalDistribution[StringReferent, StringSignal] = {
     if(n==0) l0(lexicon)
     else l(s(n, lexicon))
   }
@@ -49,7 +41,7 @@ case class AdaptiveAgent(order: Int,
 
   // Eq 4: Sn(s | r, Lex) propto exp(alpha log L_{n-1}(r | s, Lex) - cost(s))
   def s(distribution: ConditionalDistribution[StringReferent, StringSignal]): ConditionalDistribution[StringSignal, StringReferent] =
-    exp(beta * log(distribution.bayes(signalPriors)) -- signalCostsAsDistr)
+    exp(log(distribution.bayes(signalPriors) * beta) -- signalCostsAsDistr)
 
   // Eq 3: PrLn(Lex | d)
   def likelihood(lexicon: Lexicon): BigNatural = {
@@ -65,7 +57,7 @@ case class AdaptiveAgent(order: Int,
   }
 
   // Eq 2: Ln(r | s, d)
-  def l: ConditionalDistribution[StringReferent, StringSignal] = {
+  protected def l: ConditionalDistribution[StringReferent, StringSignal] = {
     val inner =
       for(lexicon <- Lexicon.allPossibleLexicons(signals, referents)) yield {
         l(order, lexicon) * likelihood(lexicon)
@@ -74,7 +66,7 @@ case class AdaptiveAgent(order: Int,
   }
 
   // Eq 1: Sn(s | r, d) propto ..
-  def s: ConditionalDistribution[StringSignal, StringReferent] = {
+  protected def s: ConditionalDistribution[StringSignal, StringReferent] = {
     val inner: Set[ConditionalDistribution[StringSignal, StringReferent]] =
       (for(lexicon <- Lexicon.allPossibleLexicons(signals, referents)) yield {
         l(order - 1, lexicon).bayes(signalPriors) * likelihood(lexicon)
@@ -82,21 +74,21 @@ case class AdaptiveAgent(order: Int,
     val sum: ConditionalDistribution[StringSignal, StringReferent] =
       inner.tail.foldLeft(inner.head)((acc, p) => acc + p)
 
-    exp(beta * log(sum) -- signalCostsAsDistr)
+    exp(log(sum) * beta -- signalCostsAsDistr)
   }
 }
 
-case object AdaptiveAgent {
-  def apply(order: Int,
-            signals: Set[StringSignal],
-            referents: Set[StringReferent],
-            history: List[(StringSignal, StringSignal)],
-            beta: Double,
-            entropyThreshold: Double): AdaptiveAgent = {
-    val signalPriors = signals.uniformDistribution
-    val referentPriors = referents.uniformDistribution
-    val lexiconPriors = Lexicon.allPossibleLexicons(signals, referents).uniformDistribution
-    val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
-    AdaptiveAgent(order, signals, referents, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-  }
-}
+//case object AdaptiveAgent {
+//  def apply(order: Int,
+//            signals: Set[StringSignal],
+//            referents: Set[StringReferent],
+//            history: List[(StringSignal, StringSignal)],
+//            beta: Double,
+//            entropyThreshold: Double): AdaptiveAgent = {
+//    val signalPriors = signals.uniformDistribution
+//    val referentPriors = referents.uniformDistribution
+//    val lexiconPriors = Lexicon.allPossibleLexicons(signals, referents).uniformDistribution
+//    val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
+//    AdaptiveAgent(order, signals, referents, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+//  }
+//}
