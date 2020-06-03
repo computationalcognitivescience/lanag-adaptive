@@ -10,26 +10,26 @@ case class Initiator(order: Int,
                      intendedReferent: StringReferent,
                      previousSignal: Option[StringSignal],
                      history: List[(StringSignal, StringSignal)],
+                     allLexicons: Set[Lexicon],
                      lexiconPriors: Distribution[Lexicon],
                      signalPriors: Distribution[StringSignal],
                      referentPriors: Distribution[StringReferent],
                      signalCosts: Map[StringSignal, BigNatural],
                      beta: BigNatural,
                      entropyThreshold: BigNatural)
-  extends AdaptiveAgent(order, signals, referents, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta) {
+  extends AdaptiveAgent(order, referents, history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta) {
 
   def nextIntention(intention: StringReferent): Initiator =
-    Initiator(order, signals, referents, intention, None, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+    Initiator(order, signals, referents, intention, None, history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
 
   def initialSpeak: (MetaSignal, Initiator, InitialInitiatorData) = {
-    s.cpt()
     val posteriorSignalDistribution = s.pr(intendedReferent)
 
     // we ignore entropy
     val inferredSignal = posteriorSignalDistribution.sample
 
     val metaSignal = MetaSignal(Some(inferredSignal))
-    val updatedAgent = Initiator(order, signals, referents, intendedReferent, Some(inferredSignal), history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+    val updatedAgent = Initiator(order, signals, referents, intendedReferent, Some(inferredSignal), history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
     val initiatorData = InitialInitiatorData(intendedReferent, metaSignal)
 
     (metaSignal, updatedAgent, initiatorData)
@@ -44,19 +44,19 @@ case class Initiator(order: Int,
     val inferredReferent = posteriorReferentDistribution.sample
 
     if(listenEntropy <= entropyThreshold && inferredReferent == intendedReferent) {
-        // I'm quite certain of the inference and I believe we have mutual understanding. We're done
-        (MetaSignal(None), this, InitiatorData(intendedReferent, inferredReferent, MetaSignal(None), listenEntropy))
+      // I'm quite certain of the inference and I believe we have mutual understanding. We're done
+      (MetaSignal(None), this, InitiatorData(intendedReferent, inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution))
     } else {
-        // I believe I was misunderstood, or I don't really understand you.
-        // speak part
-        val intermediateAgent = Initiator(order, signals, referents, intendedReferent, None, (previousSignal.get, observedSignal) :: history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-        val posteriorSignalDistribution = intermediateAgent.s.pr(intendedReferent)
-        // we ignore entropy
-        val inferredSignal = posteriorSignalDistribution.sample
-        val metaSignal = MetaSignal(Some(inferredSignal))
-        val updatedAgent = Initiator(order, signals, referents, intendedReferent, Some(inferredSignal), (previousSignal.get, observedSignal) :: history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-        val initiatorData = InitiatorData(intendedReferent, inferredReferent, metaSignal, listenEntropy)
-        (metaSignal, updatedAgent, initiatorData)
+      // I believe I was misunderstood, or I don't really understand you.
+      // speak part
+      val intermediateAgent = Initiator(order, signals, referents, intendedReferent, None, (previousSignal.get, observedSignal) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+      val posteriorSignalDistribution = intermediateAgent.s.pr(intendedReferent)
+      // we ignore entropy
+      val inferredSignal = posteriorSignalDistribution.sample
+      val metaSignal = MetaSignal(Some(inferredSignal))
+      val updatedAgent = Initiator(order, signals, referents, intendedReferent, Some(inferredSignal), (previousSignal.get, observedSignal) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+      val initiatorData = InitiatorData(intendedReferent, inferredReferent, metaSignal, listenEntropy, posteriorReferentDistribution)
+      (metaSignal, updatedAgent, initiatorData)
     }
   }
 }
@@ -68,12 +68,13 @@ case object Initiator {
             intendedReferent: StringReferent,
             previousSignal: Option[StringSignal],
             history: List[(StringSignal, StringSignal)],
+            allLexicons: Set[Lexicon],
             beta: BigNatural,
             entropyThreshold: BigNatural): Initiator = {
     val signalPriors = signals.uniformDistribution
     val referentPriors = referents.uniformDistribution
-    val lexiconPriors = Lexicon.allPossibleLexicons(signals, referents).uniformDistribution
+    val lexiconPriors = allLexicons.uniformDistribution
     val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
-    Initiator(order, signals, referents, intendedReferent, previousSignal, history, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+    Initiator(order, signals, referents, intendedReferent, previousSignal, history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
   }
 }

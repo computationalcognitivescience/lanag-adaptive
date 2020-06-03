@@ -89,7 +89,8 @@ case class Lexicon(signals: List[StringSignal], referents: List[StringReferent],
 }
 
 case object Lexicon {
-  def allPossibleLexicons(signals: Set[StringSignal], referents: Set[StringReferent]): Set[Lexicon] = {
+  def allConsistentLexicons(signals: Set[StringSignal], referents: Set[StringReferent]): Set[Lexicon] = {
+    println("computing all lexicons")
     val length1d = signals.size * referents.size
 
     def apl(curLength: Int): Set[List[Double]] = {

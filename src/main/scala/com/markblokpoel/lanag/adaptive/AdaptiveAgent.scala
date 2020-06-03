@@ -6,9 +6,10 @@ import com.markblokpoel.probability4scala.DistributionHelpers._
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
 abstract class AdaptiveAgent(order: Int,
-                             signals: Set[StringSignal],
+//                             signals: Set[StringSignal],
                              referents: Set[StringReferent],
                              history: List[(StringSignal, StringSignal)],
+                             allLexicons: Set[Lexicon],
                              lexiconPriors: Distribution[Lexicon],
                              signalPriors: Distribution[StringSignal],
                              referentPriors: Distribution[StringReferent],
@@ -52,14 +53,15 @@ abstract class AdaptiveAgent(order: Int,
         (for(r <- referents) yield {
           speakerPerspective.pr(s1 | r) * listenerPerspective.pr(r | s2)
         }).fold(0.toBigNatural)(_ + _)
-      }).fold(0.toBigNatural)(_ * _)
-    lexiconLikelihood * lexiconPriors.pr(lexicon)
+      }).fold(1.toBigNatural)(_ * _)
+    if(history.nonEmpty) lexiconLikelihood * lexiconPriors.pr(lexicon)
+    else lexiconPriors.pr(lexicon)
   }
 
   // Eq 2: Ln(r | s, d)
   protected def l: ConditionalDistribution[StringReferent, StringSignal] = {
     val inner =
-      for(lexicon <- Lexicon.allPossibleLexicons(signals, referents)) yield {
+      for(lexicon <- allLexicons) yield {
         l(order, lexicon) * likelihood(lexicon)
       }
     inner.tail.foldLeft(inner.head)((acc, p) => acc + p)
@@ -68,11 +70,8 @@ abstract class AdaptiveAgent(order: Int,
   // Eq 1: Sn(s | r, d) propto ..
   protected def s: ConditionalDistribution[StringSignal, StringReferent] = {
     val inner: List[ConditionalDistribution[StringSignal, StringReferent]] =
-      (for(lexicon <- Lexicon.allPossibleLexicons(signals, referents).toList) yield {
+      for(lexicon <- allLexicons.toList) yield
         l(order - 1, lexicon).bayes(signalPriors) * likelihood(lexicon)
-      })
-
-    inner.foreach(_.cpt())
 
     val sum: ConditionalDistribution[StringSignal, StringReferent] =
       inner.tail.foldLeft(inner.head)((acc, p) => acc + p)

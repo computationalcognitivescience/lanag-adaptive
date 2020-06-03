@@ -27,6 +27,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
     var initiatorMetaSignal = initialMetaSignal
 
     while(!done) {
+      print(s"r$round/t$turn\r")
       // Responder
       val (responderMetaSignal, updatedResponder, responderData) = responder.listenAndRespond(initiatorMetaSignal.getSignal)
       responder = updatedResponder
@@ -44,6 +45,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
       done = done || turn == maxTurns
     }
 
+    round = round + 1
     interactionData
   }
 }
