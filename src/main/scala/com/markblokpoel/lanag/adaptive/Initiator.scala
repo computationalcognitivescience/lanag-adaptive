@@ -50,6 +50,7 @@ case class Initiator(order: Int,
       // I believe I was misunderstood, or I don't really understand you.
       // speak part
       val intermediateAgent = Initiator(order, signals, referents, intendedReferent, None, (previousSignal.get, observedSignal) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+//      println("Speak\n"+intermediateAgent.s)
       val posteriorSignalDistribution = intermediateAgent.s.pr(intendedReferent)
       // we ignore entropy
       val inferredSignal = posteriorSignalDistribution.sample
