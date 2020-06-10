@@ -1,6 +1,6 @@
 package com.markblokpoel.lanag.adaptive
 
-import com.markblokpoel.probability4scala.Distribution
+//import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
 //import com.markblokpoel.probability4scala.{ConditionalDistribution, Distribution}
@@ -37,67 +37,44 @@ object MainSimulation extends App {
 
   val d = Set("a","b","c","d","e")
 
-  def poisson[A](lambda: BigNatural, domain: Set[A]): Distribution[A] = {
-    val distr = domain.toList.indices
-      .map(i => {
-        val k = new BigNatural(i.toDouble)
-        val p = lambda.pow(k) * (lambda * -1).exp / k.fact
-        val v = domain.toList(i)
-        (v -> p)
-      })
-      .toMap
-    new Distribution(domain, distr)
-  }
 
-//  poisson(BigNatural(1), d).softmax(BigNatural(1)).hist()
 
-  def binom[A](domain: Set[A], p: BigNatural): Distribution[A] = {
-    val orderedDomain = domain.toList
-    val distr = orderedDomain.indices
-      .map(i => {
-        val k = BigNatural(i.toDouble)
-        val n = BigNatural(domain.size.toDouble)
-        val bin = n.fact / k.fact / (n - k).fact
-        val ps = p.pow(k)
-        val pf = (BigNatural(1) - p).pow(n - k)
-        orderedDomain(i) -> bin * ps * pf
-      }).toMap
-    Distribution(domain, distr)
-  }
 
-//  binom(d, BigNatural(0.9)).softmax(BigNatural(1.0)).hist()
+  d.binomialDistribution(BigNatural(0.45)).hist()
+  d.binomialDistribution(BigNatural(0.55)).hist()
 
-  val lexiconPriors = binom(allLexicons, BigNatural(0.5))
 
-  val initiator = Initiator(
-    1,
-    signals,
-    referents,
-    StringReferent("R1"),
-    None,
-    List.empty,
-    allLexicons,
-    lexiconPriors,
-    signals.uniformDistribution,
-    referents.uniformDistribution,
-    signals.map(_ -> 0.toBigNatural).toMap,
-    20.toBigNatural,
-    0.8.toBigNatural)
-
-  val responder = Responder(
-    order = 1,
-    signals,
-    referents,
-    history = List.empty,
-    allLexicons,
-    beta = 20.toBigNatural,
-    entropyThreshold = 0.8.toBigNatural)
-
-  val interaction = AdaptiveInteraction(referents, initiator, responder, maxTurns = 6, nrRounds = 6)
-
-  val allData = interaction.toList
-
-  println(allData.mkString("\n"))
+//  val lexiconPriors = binom(allLexicons, BigNatural(0.5))
+//
+//  val initiator = Initiator(
+//    1,
+//    signals,
+//    referents,
+//    StringReferent("R1"),
+//    None,
+//    List.empty,
+//    allLexicons,
+//    lexiconPriors,
+//    signals.uniformDistribution,
+//    referents.uniformDistribution,
+//    signals.map(_ -> 0.toBigNatural).toMap,
+//    20.toBigNatural,
+//    0.8.toBigNatural)
+//
+//  val responder = Responder(
+//    order = 1,
+//    signals,
+//    referents,
+//    history = List.empty,
+//    allLexicons,
+//    beta = 20.toBigNatural,
+//    entropyThreshold = 0.8.toBigNatural)
+//
+//  val interaction = AdaptiveInteraction(referents, initiator, responder, maxTurns = 6, nrRounds = 6)
+//
+//  val allData = interaction.toList
+//
+//  println(allData.mkString("\n"))
 
 
 //  val cd = ConditionalDistribution(signals, referents,
