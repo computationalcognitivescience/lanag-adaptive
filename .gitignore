@@ -199,3 +199,5 @@ target/streams/
 /.idea/codeStyles/
 /project/target/
 /project/project/target/config-classes/
+
+/output/
