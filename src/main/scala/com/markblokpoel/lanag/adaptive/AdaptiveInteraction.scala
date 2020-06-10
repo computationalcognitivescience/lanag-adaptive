@@ -20,32 +20,26 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
 
     val (initialMetaSignal, updatedInitiator, initialInitiatorData) =
       initiator.nextIntention(randomIntention).initialSpeak
-    println(s"\nr$round")
     var turn = 0
     var done = initialMetaSignal.understood
     initiator = updatedInitiator
     var interactionData = InteractionData(initialInitiatorData, List.empty, List.empty)
-    println(initialInitiatorData)
     var initiatorMetaSignal = initialMetaSignal
 
     while(!done) {
-      println(s"r$round/t$turn")
+      print(s"r$round/t$turn\r")
       // Responder
-      println("[Responder] listenAndRespond")
       val (responderMetaSignal, updatedResponder, responderData) = responder.listenAndRespond(initiatorMetaSignal.getSignal)
       responder = updatedResponder
       done = responderMetaSignal.understood
       interactionData = interactionData.addResponderData(responderData)
-      println(responderData)
 
       if(!done) {
         // Initiator
-        println("[Initiator] listenAndRespond")
         val result: (MetaSignal, Initiator, InitiatorData) = initiator.listenAndRespond(responderMetaSignal.getSignal)
         initiatorMetaSignal = result._1
         initiator = result._2
         interactionData = interactionData.addInitiatorData(result._3)
-        println(result._3)
         done = initiatorMetaSignal.understood
       }
       turn = turn + 1

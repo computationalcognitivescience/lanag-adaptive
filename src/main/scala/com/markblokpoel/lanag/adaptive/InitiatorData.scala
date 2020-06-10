@@ -4,8 +4,9 @@ import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
 case class InitiatorData(intendedReferent: StringReferent,
-                         inferredReferent: StringReferent,
-                         signal: MetaSignal,
-                         listenEntropy: BigNatural,
-                         posteriorDistribution: Distribution[StringReferent])
+												 inferredReferent: StringReferent,
+												 signal: MetaSignal,
+												 listenEntropy: BigNatural,
+												 posteriorReferentDistribution: Distribution[StringReferent],
+												 lexiconEntropy: BigNatural)
   extends Data

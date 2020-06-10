@@ -25,7 +25,7 @@ case class Responder(order: Int,
 
     if(listenEntropy <= entropyThreshold) {
       // I'm quite certain I understood what you intended. We're done.
-      (MetaSignal(None), this, ResponderData(inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution))
+      (MetaSignal(None), this, ResponderData(inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy))
     } else {
       // I'm not quite certain, I'm gonna try to confirm
       // speak part
@@ -35,7 +35,7 @@ case class Responder(order: Int,
 
       val updatedResponder = Responder(order, signals, referents, (observedSignal, inferredSignal) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
 
-      val responderData = ResponderData(inferredReferent, metaSignal, listenEntropy, posteriorReferentDistribution)
+      val responderData = ResponderData(inferredReferent, metaSignal, listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy)
 
       (metaSignal, updatedResponder, responderData)
     }

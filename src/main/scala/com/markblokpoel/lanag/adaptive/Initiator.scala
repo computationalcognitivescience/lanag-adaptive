@@ -30,7 +30,7 @@ case class Initiator(order: Int,
 
     val metaSignal = MetaSignal(Some(inferredSignal))
     val updatedAgent = Initiator(order, signals, referents, intendedReferent, Some(inferredSignal), history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-    val initiatorData = InitialInitiatorData(intendedReferent, metaSignal)
+    val initiatorData = InitialInitiatorData(intendedReferent, metaSignal, lexiconLikelihoodDistribution.entropy)
 
     (metaSignal, updatedAgent, initiatorData)
   }
@@ -45,7 +45,7 @@ case class Initiator(order: Int,
 
     if(listenEntropy <= entropyThreshold && inferredReferent == intendedReferent) {
       // I'm quite certain of the inference and I believe we have mutual understanding. We're done
-      (MetaSignal(None), this, InitiatorData(intendedReferent, inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution))
+      (MetaSignal(None), this, InitiatorData(intendedReferent, inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy))
     } else {
       // I believe I was misunderstood, or I don't really understand you.
       // speak part
@@ -56,7 +56,7 @@ case class Initiator(order: Int,
       val inferredSignal = posteriorSignalDistribution.sample
       val metaSignal = MetaSignal(Some(inferredSignal))
       val updatedAgent = Initiator(order, signals, referents, intendedReferent, Some(inferredSignal), (previousSignal.get, observedSignal) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-      val initiatorData = InitiatorData(intendedReferent, inferredReferent, metaSignal, listenEntropy, posteriorReferentDistribution)
+      val initiatorData = InitiatorData(intendedReferent, inferredReferent, metaSignal, listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy)
       (metaSignal, updatedAgent, initiatorData)
     }
   }

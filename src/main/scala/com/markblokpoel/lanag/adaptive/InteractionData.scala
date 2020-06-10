@@ -16,14 +16,14 @@ case class InteractionData(initialInitiatorData: InitialInitiatorData,
         val inData = if(initiatorData.isDefinedAt(i)) Some(initiatorData(i)) else None
 
         val responder = if(reData.isDefined)
-          "[Responder] " + reData.get.inferredReferent + " from " + reData.get.posteriorDistribution +
+          "[Responder] " + reData.get.inferredReferent + " from " + reData.get.posteriorResponderDistribution +
             f" with H=${reData.get.listenEntropy.doubleValue()}%1.2f\n" +
             "[Responder] " + reData.get.inferredReferent + " -> " + reData.get.signal
         else
           "[Responder] ..."
 
         val initiator = if(inData.isDefined)
-          "[Initiator] " + inData.get.inferredReferent +  " from " + inData.get.posteriorDistribution +
+          "[Initiator] " + inData.get.inferredReferent +  " from " + inData.get.posteriorReferentDistribution +
             f" with H=${inData.get.listenEntropy.doubleValue()}%1.2f" + "\n" +
             "[Initiator] " + inData.get.intendedReferent + " -> " + inData.get.signal
         else
@@ -32,5 +32,7 @@ case class InteractionData(initialInitiatorData: InitialInitiatorData,
         responder + "\n" + initiator
       }).mkString("\n")
   }
+
+
 
 }
