@@ -4,10 +4,10 @@ case class InteractionData(initialInitiatorData: InitialInitiatorData,
                            initiatorData: List[InitiatorData],
                            responderData: List[ResponderData]) {
   def addInitiatorData(moreInitiatorData: InitiatorData): InteractionData =
-    InteractionData(initialInitiatorData, moreInitiatorData :: initiatorData, responderData)
+    InteractionData(initialInitiatorData, initiatorData :+ moreInitiatorData, responderData)
 
   def addResponderData(moreResponderData: ResponderData): InteractionData =
-    InteractionData(initialInitiatorData, initiatorData, moreResponderData :: responderData)
+    InteractionData(initialInitiatorData, initiatorData, responderData :+ moreResponderData)
 
   override def toString: String = {
     s"==NEW ROUND==\n[Initiator] ${initialInitiatorData.intendedReferent} -> ${initialInitiatorData.signal}\n" +
@@ -24,7 +24,7 @@ case class InteractionData(initialInitiatorData: InitialInitiatorData,
 
         val initiator = if(inData.isDefined)
           "[Initiator] " + inData.get.inferredReferent +  " from " + inData.get.posteriorDistribution +
-            f" with=${inData.get.listenEntropy.doubleValue()}%1.2f" + "\n" +
+            f" with H=${inData.get.listenEntropy.doubleValue()}%1.2f" + "\n" +
             "[Initiator] " + inData.get.intendedReferent + " -> " + inData.get.signal
         else
           "[Initiator] ..."

@@ -9,7 +9,9 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
                                nrRounds: Int)
   extends Iterator[InteractionData] {
 
-  var round = 0
+  private var round = 0
+  private var responder = initialResponder
+  private var initiator = initialInitiator
 
   override def hasNext: Boolean = round < nrRounds
 
@@ -17,13 +19,13 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
     val randomIntention = referents.toList(Random.nextInt(referents.size))
 
     val (initialMetaSignal, updatedInitiator, initialInitiatorData) =
-      initialInitiator.nextIntention(randomIntention).initialSpeak
-
+      initiator.nextIntention(randomIntention).initialSpeak
+    println(s"\nr$round")
     var turn = 0
     var done = initialMetaSignal.understood
-    var responder = initialResponder
-    var initiator = updatedInitiator
+    initiator = updatedInitiator
     var interactionData = InteractionData(initialInitiatorData, List.empty, List.empty)
+    println(initialInitiatorData)
     var initiatorMetaSignal = initialMetaSignal
 
     while(!done) {
@@ -34,6 +36,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
       responder = updatedResponder
       done = responderMetaSignal.understood
       interactionData = interactionData.addResponderData(responderData)
+      println(responderData)
 
       if(!done) {
         // Initiator
@@ -42,6 +45,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
         initiatorMetaSignal = result._1
         initiator = result._2
         interactionData = interactionData.addInitiatorData(result._3)
+        println(result._3)
         done = initiatorMetaSignal.understood
       }
       turn = turn + 1

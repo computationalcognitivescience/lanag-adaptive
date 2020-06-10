@@ -33,48 +33,42 @@ object MainSimulation extends App {
 //  val ld = Distribution(allLexicons, lexiconDistribution).softmax(1.toBigNatural)
 //  ld.hist()
 
+util.Random.setSeed(1000L)
+  val lexiconPriors = allLexicons.binomialDistribution(BigNatural(0.5))
 
+  val initiator = Initiator(
+    1,
+    signals,
+    referents,
+    StringReferent("R1"),
+    None,
+    List.empty,
+    allLexicons,
+    lexiconPriors,
+    signals.uniformDistribution,
+    referents.uniformDistribution,
+    signals.map(_ -> 0.toBigNatural).toMap,
+    20.toBigNatural,
+    0.8.toBigNatural)
 
-  val d = Set("a","b","c","d","e")
+  val responder = Responder(
+    1,
+    signals,
+    referents,
+    List.empty,
+    allLexicons,
+    lexiconPriors,
+    signals.uniformDistribution,
+    referents.uniformDistribution,
+    signals.map(_ -> 0.toBigNatural).toMap,
+    20.toBigNatural,
+    0.8.toBigNatural)
 
+  val interaction = AdaptiveInteraction(referents, initiator, responder, maxTurns = 6, nrRounds = 6)
 
+  val allData = interaction.toList
 
-
-  d.binomialDistribution(BigNatural(0.45)).hist()
-  d.binomialDistribution(BigNatural(0.55)).hist()
-
-
-//  val lexiconPriors = binom(allLexicons, BigNatural(0.5))
-//
-//  val initiator = Initiator(
-//    1,
-//    signals,
-//    referents,
-//    StringReferent("R1"),
-//    None,
-//    List.empty,
-//    allLexicons,
-//    lexiconPriors,
-//    signals.uniformDistribution,
-//    referents.uniformDistribution,
-//    signals.map(_ -> 0.toBigNatural).toMap,
-//    20.toBigNatural,
-//    0.8.toBigNatural)
-//
-//  val responder = Responder(
-//    order = 1,
-//    signals,
-//    referents,
-//    history = List.empty,
-//    allLexicons,
-//    beta = 20.toBigNatural,
-//    entropyThreshold = 0.8.toBigNatural)
-//
-//  val interaction = AdaptiveInteraction(referents, initiator, responder, maxTurns = 6, nrRounds = 6)
-//
-//  val allData = interaction.toList
-//
-//  println(allData.mkString("\n"))
+  println(allData.mkString("\n"))
 
 
 //  val cd = ConditionalDistribution(signals, referents,

@@ -91,7 +91,7 @@ abstract class AdaptiveAgent(order: Int,
 
 //    println("SUM")
 //    sum.cpt()
-    sum.softmax(beta, signalCostsAsDistr).cpt()
+//    sum.softmax(beta, signalCostsAsDistr).cpt()
 
     sum.softmax(beta, signalCostsAsDistr)
   }
