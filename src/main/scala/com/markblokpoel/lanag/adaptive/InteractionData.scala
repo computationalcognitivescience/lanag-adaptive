@@ -11,16 +11,21 @@ case class InteractionData(initialInitiatorData: InitialInitiatorData,
 
   override def toString: String = {
     s"==NEW ROUND==\n[Initiator] ${initialInitiatorData.intendedReferent} -> ${initialInitiatorData.signal}\n" +
-      (for(riData <- responderData.map(Option.apply).zipAll(initiatorData.map(Option.apply), None, None)) yield {
-        val responder = if(riData._1.isDefined)
-          "[Responder] " + riData._1.get.inferredReferent + " from " + riData._1.get.posteriorDistribution + f" with H=${riData._2.get.listenEntropy.doubleValue()}%1.2f\n" +
-            "[Responder] " + riData._1.get.inferredReferent + " -> " + riData._1.get.signal
+      (for(i <- 0 until math.max(initiatorData.size, responderData.size)) yield {
+        val reData = if(responderData.isDefinedAt(i)) Some(responderData(i)) else None
+        val inData = if(initiatorData.isDefinedAt(i)) Some(initiatorData(i)) else None
+
+        val responder = if(reData.isDefined)
+          "[Responder] " + reData.get.inferredReferent + " from " + reData.get.posteriorDistribution +
+            f" with H=${reData.get.listenEntropy.doubleValue()}%1.2f\n" +
+            "[Responder] " + reData.get.inferredReferent + " -> " + reData.get.signal
         else
           "[Responder] ..."
 
-        val initiator = if(riData._1.isDefined)
-          "[Initiator] " + riData._2.get.inferredReferent +  " from " + riData._2.get.posteriorDistribution + f" with=${riData._2.get.listenEntropy.doubleValue()}%1.2f" + "\n" +
-            "[Initiator] " + riData._2.get.intendedReferent + " -> " + riData._2.get.signal
+        val initiator = if(inData.isDefined)
+          "[Initiator] " + inData.get.inferredReferent +  " from " + inData.get.posteriorDistribution +
+            f" with=${inData.get.listenEntropy.doubleValue()}%1.2f" + "\n" +
+            "[Initiator] " + inData.get.intendedReferent + " -> " + inData.get.signal
         else
           "[Initiator] ..."
 
