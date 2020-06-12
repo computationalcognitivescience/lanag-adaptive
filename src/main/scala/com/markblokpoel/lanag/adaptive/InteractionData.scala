@@ -1,14 +1,22 @@
 package com.markblokpoel.lanag.adaptive
 
+import com.markblokpoel.probability4scala.datastructures.BigNatural
+
 case class InteractionData(initialInitiatorData: InitialInitiatorData,
+                           klInitItoR: BigNatural,
+                           klInitRtoI: BigNatural,
                            initiatorData: List[InitiatorData],
-                           responderData: List[ResponderData]) {
+                           responderData: List[ResponderData],
+                           klInitiatorToResponder: List[BigNatural],
+                           klResponderToInitiator: List[BigNatural]) {
   def addInitiatorData(moreInitiatorData: InitiatorData): InteractionData =
-    InteractionData(initialInitiatorData, initiatorData :+ moreInitiatorData, responderData)
+    InteractionData(initialInitiatorData, klInitItoR, klInitRtoI, initiatorData :+ moreInitiatorData, responderData, klInitiatorToResponder, klResponderToInitiator)
 
   def addResponderData(moreResponderData: ResponderData): InteractionData =
-    InteractionData(initialInitiatorData, initiatorData, responderData :+ moreResponderData)
+    InteractionData(initialInitiatorData, klInitItoR, klInitRtoI, initiatorData, responderData :+ moreResponderData, klInitiatorToResponder, klResponderToInitiator)
 
+  def addKLDivergence(initiatorToResponder: BigNatural, responderToInitiator: BigNatural): InteractionData =
+    InteractionData(initialInitiatorData, klInitItoR, klInitRtoI, initiatorData, responderData, klInitiatorToResponder :+ initiatorToResponder, klResponderToInitiator :+ responderToInitiator)
   override def toString: String = {
     s"==NEW ROUND==\n[Initiator] ${initialInitiatorData.intendedReferent} -> ${initialInitiatorData.signal}\n" +
       (for(i <- 0 until math.max(initiatorData.size, responderData.size)) yield {

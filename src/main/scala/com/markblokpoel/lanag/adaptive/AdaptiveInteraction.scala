@@ -18,12 +18,14 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
   override def next(): InteractionData = {
     val randomIntention = referents.toList(Random.nextInt(referents.size))
 
+    val klInitItoR = initiator.lexiconLikelihoodDistribution.klDivergence(responder.lexiconLikelihoodDistribution)
+    val klInitRtoI = responder.lexiconLikelihoodDistribution.klDivergence(initiator.lexiconLikelihoodDistribution)
     val (initialMetaSignal, updatedInitiator, initialInitiatorData) =
       initiator.nextIntention(randomIntention).initialSpeak
     var turn = 0
     var done = initialMetaSignal.understood
     initiator = updatedInitiator
-    var interactionData = InteractionData(initialInitiatorData, List.empty, List.empty)
+    var interactionData = InteractionData(initialInitiatorData, klInitItoR, klInitRtoI, List.empty, List.empty, List.empty, List.empty)
     var initiatorMetaSignal = initialMetaSignal
 
     while(!done) {
@@ -35,6 +37,9 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
       interactionData = interactionData.addResponderData(responderData)
 
       if(!done) {
+        val klItoR = initiator.lexiconLikelihoodDistribution.klDivergence(responder.lexiconLikelihoodDistribution)
+        val klRtoI = responder.lexiconLikelihoodDistribution.klDivergence(initiator.lexiconLikelihoodDistribution)
+        interactionData = interactionData.addKLDivergence(klItoR, klRtoI)
         // Initiator
         val result: (MetaSignal, Initiator, InitiatorData) = initiator.listenAndRespond(responderMetaSignal.getSignal)
         initiatorMetaSignal = result._1
