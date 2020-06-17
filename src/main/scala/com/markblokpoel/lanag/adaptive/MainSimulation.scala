@@ -13,7 +13,7 @@ object MainSimulation extends App {
   util.Random.setSeed(1000L)
   val lexiconPriors = allLexicons.binomialDistribution(BigNatural(0.5))
 
-  val nrPairs = 3
+  val nrPairs = 10
   val maxTurns = 6
   val nrRounds = 6
   val beta = 20.toBigNatural
@@ -54,7 +54,7 @@ object MainSimulation extends App {
 
       val interaction = AdaptiveInteraction(referents, initiator, responder, maxTurns, nrRounds)
 
-      (pair -> interaction)
+      pair -> interaction
     }).toParArray
 
 val allData = interactionsParallelized.map(interaction => interaction._1 -> interaction._2.toList)
