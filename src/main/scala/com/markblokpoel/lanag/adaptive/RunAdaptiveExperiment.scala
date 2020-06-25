@@ -29,7 +29,7 @@ object RunAdaptiveExperiment extends App{
 
 	util.Random.setSeed(1000L)
 
-	val nrPairs = 2
+	val nrPairs = 500
 	val maxTurns = 6
 	val nrRounds = 6
 	val entropyThreshold = 0.8.toBigNatural
@@ -122,7 +122,7 @@ object RunAdaptiveExperiment extends App{
 				pair -> interaction
 			}).toParArray
 
-			val allData = interactionsParallelized.map(interaction => interaction._1 -> interaction._2.toList)
+			val allData = interactionsParallelized.map(interaction => interaction._1 -> interaction._2)
 				.toList
 
 			val parameters = s"a${nrPairs}_b${beta}_d$distribution"

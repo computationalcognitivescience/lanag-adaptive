@@ -37,18 +37,17 @@ extends ExplicitAgent(order, history, allLexicons, lexiconPriors, signalPriors, 
 		(metaSignal, updatedAgent, initiatorData)
 	}
 
-	override def listenAndRespond(observedSignal: StringSignal): (MetaSignal, ExplicitInitiator, InitiatorData) = {
+def listenAndRespond(observedSignal: StringSignal, explicitReferent: StringReferent): (MetaSignal, ExplicitInitiator, InitiatorData) = {
 		require(previousSignal.isDefined, "[ExplicitInitiator] Cannot listenAndRespond when I have no previousSignal.")
 
 		// listen part
 		val posteriorReferentDistribution = l.pr(observedSignal)
 		val listenEntropy = posteriorReferentDistribution.entropy
-		val inferredReferent = posteriorReferentDistribution.sample
-		val explicitReferent = inferredReferent //TODO: access this properly
+//		val inferredReferent = posteriorReferentDistribution.sample
 
-		if(listenEntropy <= entropyThreshold && inferredReferent == intendedReferent) {
+		if(listenEntropy <= entropyThreshold && explicitReferent == intendedReferent) {
 			// I'm quite certain of the inference and I believe we have mutual understanding. We're done
-			(MetaSignal(None), this, InitiatorData(intendedReferent, inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy))
+			(MetaSignal(None), this, InitiatorData(intendedReferent, explicitReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy))
 		} else {
 			// I believe I was misunderstood, or I don't really understand you.
 			// speak part
@@ -59,7 +58,7 @@ extends ExplicitAgent(order, history, allLexicons, lexiconPriors, signalPriors, 
 			val inferredSignal = posteriorSignalDistribution.sample
 			val metaSignal = MetaSignal(Some(inferredSignal))
 			val updatedAgent = ExplicitInitiator(order, signals, referents, intendedReferent, Some(inferredSignal), (previousSignal.get, explicitReferent) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-			val initiatorData = InitiatorData(intendedReferent, inferredReferent, metaSignal, listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy)
+			val initiatorData = InitiatorData(intendedReferent, explicitReferent, metaSignal, listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy)
 			(metaSignal, updatedAgent, initiatorData)
 		}
 	}

@@ -35,7 +35,7 @@ case class ExplicitInteraction(referents: Set[StringReferent],
 		while(!done) {
 			print(s"r$round/t$turn\r")
 			// Responder
-			val (responderMetaSignal, updatedResponder, responderData) = responder.listenAndRespond(initiatorMetaSignal.getSignal)
+			val (responderMetaSignal, responderExplicitReferent, updatedResponder, responderData) = responder.listenAndRespond(initiatorMetaSignal.getSignal)
 			responder = updatedResponder
 			done = responderMetaSignal.understood
 			interactionData = interactionData.addResponderData(responderData)
@@ -45,7 +45,7 @@ case class ExplicitInteraction(referents: Set[StringReferent],
 				val klRtoI = responder.lexiconLikelihoodDistribution.klDivergence(initiator.lexiconLikelihoodDistribution)
 				interactionData = interactionData.addKLDivergence(klItoR, klRtoI)
 				// Initiator
-				val result: (MetaSignal, ExplicitInitiator, InitiatorData) = initiator.listenAndRespond(responderMetaSignal.getSignal)
+				val result: (MetaSignal, ExplicitInitiator, InitiatorData) = initiator.listenAndRespond(responderMetaSignal.getSignal, responderExplicitReferent)
 				initiatorMetaSignal = result._1
 				initiator = result._2
 				interactionData = interactionData.addInitiatorData(result._3)

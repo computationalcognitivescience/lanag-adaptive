@@ -19,16 +19,15 @@ case class ExplicitResponder (order: Int,
 												 entropyThreshold: BigNatural)
 	extends ExplicitAgent(order, history ,allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta) {
 
-	override def listenAndRespond(observedSignal: StringSignal): (MetaSignal, ExplicitResponder, ResponderData) = {
+def listenAndRespond(observedSignal: StringSignal): (MetaSignal, StringReferent, ExplicitResponder, ResponderData) = {
 		// listen part
 		val posteriorReferentDistribution = l.pr(observedSignal)
 		val listenEntropy = posteriorReferentDistribution.entropy
 		val inferredReferent = posteriorReferentDistribution.sample
-		val explicitReferent = inferredReferent //TODO: access this properly
 
 		if(listenEntropy <= entropyThreshold) {
 			// I'm quite certain I understood what you intended. We're done.
-			(MetaSignal(None), this, ResponderData(inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy))
+			(MetaSignal(None), inferredReferent, this, ResponderData(inferredReferent, MetaSignal(None), listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy))
 		} else {
 			// I'm not quite certain, I'm gonna try to confirm
 			// speak part
@@ -36,11 +35,11 @@ case class ExplicitResponder (order: Int,
 			val inferredSignal = posteriorSignalDistribution.sample
 			val metaSignal = MetaSignal(Some(inferredSignal))
 
-			val updatedResponder = ExplicitResponder(order, signals, referents, (observedSignal, explicitReferent) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
+			val updatedResponder = ExplicitResponder(order, signals, referents, (observedSignal, inferredReferent) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
 
 			val responderData = ResponderData(inferredReferent, metaSignal, listenEntropy, posteriorReferentDistribution, lexiconLikelihoodDistribution.entropy)
 
-			(metaSignal, updatedResponder, responderData)
+			(metaSignal,inferredReferent, updatedResponder, responderData)
 		}
 	}
 }

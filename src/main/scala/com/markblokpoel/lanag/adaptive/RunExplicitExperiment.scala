@@ -28,6 +28,7 @@ object RunExplicitExperiment extends App{
 	val distributionOptions = List(0.5, 0.45, 0.4)
 
 
+
 	for (beta <- betaOptions){
 		for (distribution <- distributionOptions){
 			val lexiconPriorInitiator = allLexicons.binomialDistribution(BigNatural(distribution))
@@ -111,7 +112,7 @@ object RunExplicitExperiment extends App{
 				pair -> interaction
 			}).toParArray
 
-			val allData = interactionsParallelized.map(interaction => interaction._1 -> interaction._2.toList)
+			val allData = interactionsParallelized.map(interaction => interaction._1 -> interaction._2)
 				.toList
 
 			val parameters = s"exp_a${nrPairs}_b${beta}_d$distribution"

@@ -1,7 +1,7 @@
 package com.markblokpoel.lanag.adaptive.agents
 
-import com.markblokpoel.lanag.adaptive.atoms.{Lexicon, MetaSignal, StringReferent, StringSignal}
-import com.markblokpoel.lanag.adaptive.storage.Data
+import com.markblokpoel.lanag.adaptive.atoms.{Lexicon, StringReferent, StringSignal}
+//import com.markblokpoel.lanag.adaptive.storage.Data
 import com.markblokpoel.probability4scala.{ConditionalDistribution, Distribution}
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 import com.markblokpoel.probability4scala.Implicits._
@@ -19,7 +19,7 @@ abstract class ExplicitAgent (order: Int,
 
 	protected val signalCostsAsDistr = new Distribution(signalCosts.keySet, signalCosts)
 
-	def listenAndRespond(signal: StringSignal): (MetaSignal, ExplicitAgent, Data)
+//	def listenAndRespond(signal: StringSignal): (MetaSignal, ExplicitAgent, Data)
 
 	private def s(n: Int, lexicon: Lexicon): ConditionalDistribution[StringSignal, StringReferent] = {
 		if(n==0) s0(lexicon)
