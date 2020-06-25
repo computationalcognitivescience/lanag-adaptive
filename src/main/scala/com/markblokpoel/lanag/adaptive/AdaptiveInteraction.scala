@@ -1,5 +1,9 @@
 package com.markblokpoel.lanag.adaptive
 
+import com.markblokpoel.lanag.adaptive.agents.{Initiator, Responder}
+import com.markblokpoel.lanag.adaptive.atoms.{MetaSignal, StringReferent}
+import com.markblokpoel.lanag.adaptive.storage.{InitiatorData, InteractionData}
+
 import scala.util.Random
 
 case class AdaptiveInteraction(referents: Set[StringReferent],
@@ -25,7 +29,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
     var turn = 0
     var done = initialMetaSignal.understood
     initiator = updatedInitiator
-    var interactionData = InteractionData(initialInitiatorData, klInitItoR, klInitRtoI, List.empty, List.empty, List.empty, List.empty)
+    var interactionData = storage.InteractionData(initialInitiatorData, klInitItoR, klInitRtoI, List.empty, List.empty, List.empty, List.empty)
     var initiatorMetaSignal = initialMetaSignal
 
     while(!done) {

@@ -1,23 +1,16 @@
 package com.markblokpoel.lanag.adaptive
 
+import java.io.{File, PrintWriter}
+
+import com.markblokpoel.lanag.adaptive.agents.{ExplicitInitiator, ExplicitResponder}
+import com.markblokpoel.lanag.adaptive.atoms.{Lexicon, StringReferent, StringSignal}
+import com.markblokpoel.lanag.adaptive.storage.InteractionData
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 import com.markblokpoel.probability4scala.Implicits._
 
 import scala.util.Random
-import java.io._
 
-/*
-run experiment with settings:
-- beta of 2, 5, 10, 20
-- many pairs of agents (500?)
-- start distribution for agents - .5 / .45 - .55 / .4 - .6
-- entropyThreshold?
-- lexicon size?
-- seed for the lexicons?
-
-Store all output: same as in main.simulation, but name files with parameters
-*/
-object RunExperiment extends App{
+object RunExplicitExperiment extends App{
 
 	val signals = Set("S1", "S2", "S3").map(StringSignal)
 	val referents = Set("R1", "R2").map(StringReferent)
@@ -41,7 +34,7 @@ object RunExperiment extends App{
 			val lexiconPriorResponder = allLexicons.binomialDistribution(BigNatural(1-distribution))
 			val firstReferent = referents.toList(Random.nextInt(referents.size))
 			val interactionsParallelized = (for(pair <- 0 until nrPairs) yield {
-				val initiator = Initiator(
+				val initiator = ExplicitInitiator(
 					order,
 					signals,
 					referents,
@@ -56,7 +49,7 @@ object RunExperiment extends App{
 					beta,
 					entropyThreshold)
 
-				val responder = Responder(
+				val responder = ExplicitResponder(
 					order,
 					signals,
 					referents,
@@ -69,7 +62,51 @@ object RunExperiment extends App{
 					beta,
 					entropyThreshold)
 
-				val interaction = AdaptiveInteraction(referents, initiator, responder, maxTurns, nrRounds)
+				val interaction = ExplicitInteraction(referents, initiator, responder, maxTurns, nrRounds).toList
+
+				val parameters = s"exp_a$nrPairs-${pair}_b${beta}_d$distribution"
+
+				val pwt = new PrintWriter(new File("output/datafiles/results_turns_" + parameters + ".csv" ))
+				pwt.println("pair;round;turn;initiatorIntention;initiatorSignal;responderInference;responderSignal;entropyInitiatorListen;entropyResponderListen;entropyInitiatorLexicon;entropyResponderLexicon;KLDivItoR;KLDivRtoI")
+				//				val rounds: List[InteractionData] = interaction
+				interaction.indices.foreach(round => {
+					val roundData: InteractionData = interaction(round)
+					val turn0i = roundData.initialInitiatorData
+					val turn0r = roundData.responderData.head
+					pwt.println(s"$pair;$round;0;${turn0i.intendedReferent};${turn0i.signal.toString};${turn0r.inferredReferent};${turn0r.signal.toString};NA;${turn0r.listenEntropy};${turn0i.lexiconEntropy};${turn0r.lexiconEntropy};${roundData.klInitItoR};${roundData.klInitRtoI}")
+
+					val restTurnsI = roundData.initiatorData
+					val restTurnsR = roundData.responderData.tail
+					for(turn <- 0 until math.max(restTurnsI.size, restTurnsR.size)) {
+						if(restTurnsI.isDefinedAt(turn) && restTurnsR.isDefinedAt(turn)) {
+							val turni = restTurnsI(turn)
+							val turnr = restTurnsR(turn)
+							val turnklItoR = roundData.klInitiatorToResponder(turn)
+							val turnklRtoI = roundData.klResponderToInitiator(turn)
+							pwt.println(s"$pair;$round;$turn;${turni.intendedReferent};${turni.signal.toString};${turnr.inferredReferent};${turnr.signal.toString};${turni.listenEntropy};${turnr.listenEntropy};${turni.lexiconEntropy};${turnr.lexiconEntropy};$turnklItoR;$turnklRtoI")
+						} else {
+							val turni = restTurnsI(turn)
+							pwt.println(s"$pair;$round;$turn;${turni.intendedReferent};${turni.signal.toString};NA;NA;${turni.listenEntropy};NA;${turni.lexiconEntropy};NA;NA;NA")
+						}
+					}
+				})
+				pwt.flush()
+
+				val pwr = new PrintWriter(new File("output/datafiles/results_rounds_" + parameters + ".csv"))
+				pwr.println("pair;round;nrTurns;success")
+				//					val pair: Int = intPair
+				val rounds: List[InteractionData] = interaction
+				rounds.indices.foreach(round => {
+					val nrTurns = rounds(round).initiatorData.length + 1
+					val success = rounds(round).initialInitiatorData.intendedReferent == rounds(round).responderData.last.inferredReferent
+					pwr.println(s"$pair;$round;$nrTurns;$success")
+				})
+				pwr.flush()
+
+				val pwc = new PrintWriter(new File("output/datafiles/config_" + parameters + ".csv"))
+				pwc.println("agentPairs;maxTurns;roundsPlayed;beta;entropyThreshold;order;costs;initiatorDistribution;responderDistribution")
+				pwc.println(s"$nrPairs;$maxTurns;$nrRounds;$beta;$entropyThreshold;$order;$costs;$distribution;${1-distribution}")
+				pwc.flush()
 
 				pair -> interaction
 			}).toParArray
@@ -77,7 +114,7 @@ object RunExperiment extends App{
 			val allData = interactionsParallelized.map(interaction => interaction._1 -> interaction._2.toList)
 				.toList
 
-			val parameters = s"a${nrPairs}_b${beta}_d$distribution"
+			val parameters = s"exp_a${nrPairs}_b${beta}_d$distribution"
 
 			val pwt = new PrintWriter(new File("output/datafiles/results_turns_" + parameters + ".csv" ))
 			pwt.println("pair;round;turn;initiatorIntention;initiatorSignal;responderInference;responderSignal;entropyInitiatorListen;entropyResponderListen;entropyInitiatorLexicon;entropyResponderLexicon;KLDivItoR;KLDivRtoI")
@@ -129,3 +166,4 @@ object RunExperiment extends App{
 		}
 	}
 }
+

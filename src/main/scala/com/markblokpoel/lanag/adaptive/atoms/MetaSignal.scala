@@ -1,4 +1,4 @@
-package com.markblokpoel.lanag.adaptive
+package com.markblokpoel.lanag.adaptive.atoms
 
 case class MetaSignal(signal: Option[StringSignal]) {
   def understood: Boolean = signal.isEmpty

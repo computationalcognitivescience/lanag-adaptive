@@ -1,8 +1,10 @@
-package com.markblokpoel.lanag.adaptive
+package com.markblokpoel.lanag.adaptive.agents
 
+import com.markblokpoel.lanag.adaptive.atoms.{Lexicon, MetaSignal, StringReferent, StringSignal}
+import com.markblokpoel.lanag.adaptive.storage._
 import com.markblokpoel.probability4scala.Distribution
-import com.markblokpoel.probability4scala.datastructures.BigNatural
 import com.markblokpoel.probability4scala.Implicits._
+import com.markblokpoel.probability4scala.datastructures.BigNatural
 
 case class Initiator(order: Int,
                      signals: Set[StringSignal],

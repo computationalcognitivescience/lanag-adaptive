@@ -1,8 +1,11 @@
-package com.markblokpoel.lanag.adaptive
+package com.markblokpoel.lanag.adaptive.agents
 
-import com.markblokpoel.probability4scala.{ConditionalDistribution, Distribution}
+//import com.markblokpoel.lanag.adaptive._
+import com.markblokpoel.lanag.adaptive.atoms.{Lexicon, MetaSignal, StringReferent, StringSignal}
+import com.markblokpoel.lanag.adaptive.storage.Data
 import com.markblokpoel.probability4scala.Implicits._
 import com.markblokpoel.probability4scala.datastructures.BigNatural
+import com.markblokpoel.probability4scala.{ConditionalDistribution, Distribution}
 
 abstract class AdaptiveAgent(order: Int,
 //                             signals: Set[StringSignal],

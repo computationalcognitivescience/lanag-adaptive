@@ -4,6 +4,10 @@ import com.markblokpoel.probability4scala.datastructures.BigNatural
 import com.markblokpoel.probability4scala.Implicits._
 import java.io._
 
+import com.markblokpoel.lanag.adaptive.agents.{Initiator, Responder}
+import com.markblokpoel.lanag.adaptive.atoms._
+import com.markblokpoel.lanag.adaptive.storage.InteractionData
+
 object MainSimulation extends App {
 
   val signals = Set("S1", "S2", "S3").map(StringSignal)

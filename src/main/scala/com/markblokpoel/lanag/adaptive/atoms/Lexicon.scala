@@ -1,4 +1,4 @@
-package com.markblokpoel.lanag.adaptive
+package com.markblokpoel.lanag.adaptive.atoms
 
 import com.markblokpoel.probability4scala.ConditionalDistribution
 import com.markblokpoel.probability4scala.datastructures.BigNatural
