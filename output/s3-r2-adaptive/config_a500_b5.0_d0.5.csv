@@ -1,0 +1,2 @@
+agentPairs;maxTurns;roundsPlayed;beta;entropyThreshold;order;costs;initiatorDistribution;responderDistribution
+500;6;6;5.0;0.8;1;0.0;0.5;0.5
