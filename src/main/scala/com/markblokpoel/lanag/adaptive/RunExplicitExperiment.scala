@@ -10,10 +10,17 @@ import com.markblokpoel.probability4scala.Implicits._
 
 import scala.util.Random
 
+
+/** Runs the ostensive simulations
+ *
+ *  Sets up the settings to run simulations
+ *  Runs the simulations
+ *  Saves datafiles of simulations automatically
+ */
 object RunExplicitExperiment extends App{
 
-	val signals = Set("S1", "S2", "S3").map(StringSignal)
-	val referents = Set("R1", "R2").map(StringReferent)
+	val signals = Set("S1", "S2", "S3", "S4").map(StringSignal)
+	val referents = Set("R1", "R2", "R3").map(StringReferent)
 	val allLexicons = Lexicon.allConsistentLexicons(signals, referents)
 
 	util.Random.setSeed(1000L)
@@ -26,7 +33,6 @@ object RunExplicitExperiment extends App{
 	val costs = 0.toBigNatural
 	val betaOptions = List(2.toBigNatural, 5.toBigNatural, 10.toBigNatural, 20.toBigNatural)
 	val distributionOptions = List(0.5, 0.45, 0.4)
-
 
 
 	for (beta <- betaOptions){

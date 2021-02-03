@@ -6,6 +6,14 @@ import com.markblokpoel.lanag.adaptive.storage.{InitiatorData, InteractionData}
 
 import scala.util.Random
 
+/** The interaction for ostensive interaction
+ *
+ * @param referents the set of possible referents
+ * @param initialInitiator the ostensive initiator agent
+ * @param initialResponder the ostensive responder agent
+ * @param maxTurns maximum number of turns in a dialogue
+ * @param nrRounds maximum number of dialogues before conversation ends
+ */
 case class ExplicitInteraction(referents: Set[StringReferent],
 															 initialInitiator: ExplicitInitiator,
 															 initialResponder: ExplicitResponder,
@@ -17,8 +25,16 @@ case class ExplicitInteraction(referents: Set[StringReferent],
 	private var responder = initialResponder
 	private var initiator = initialInitiator
 
+	/** Checks whether there are dialogues left to be performed
+	 *
+	 * @return true if current dialogue is not the final one
+	 */
 	override def hasNext: Boolean = round < nrRounds
 
+	/** Performs the whole conversation
+	 *
+	 * @return the data stored during the interaction
+	 */
 	override def next(): InteractionData = {
 		val randomIntention = referents.toList(Random.nextInt(referents.size))
 

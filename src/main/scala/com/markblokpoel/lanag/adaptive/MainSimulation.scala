@@ -8,6 +8,10 @@ import com.markblokpoel.lanag.adaptive.agents.{Initiator, Responder}
 import com.markblokpoel.lanag.adaptive.atoms._
 import com.markblokpoel.lanag.adaptive.storage.InteractionData
 
+
+/** Runs the adaptive model, old version
+ *
+ */
 object MainSimulation extends App {
 
   val signals = Set("S1", "S2", "S3").map(StringSignal)
@@ -26,7 +30,6 @@ object MainSimulation extends App {
   val costs = 0.toBigNatural
 
 
-//  val allData = (for(pair <- 0 until nrPairs) yield {
   val interactionsParallelized = (for(pair <- 0 until nrPairs) yield {
       val initiator = Initiator(
         order,

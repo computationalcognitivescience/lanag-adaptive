@@ -10,21 +10,17 @@ import com.markblokpoel.lanag.adaptive.agents.{Initiator, Responder}
 import com.markblokpoel.lanag.adaptive.atoms._
 import com.markblokpoel.lanag.adaptive.storage.InteractionData
 
-/*
-run experiment with settings:
-- beta of 2, 5, 10, 20
-- many pairs of agents (500?)
-- start distribution for agents - .5 / .45 - .55 / .4 - .6
-- entropyThreshold?
-- lexicon size?
-- seed for the lexicons?
 
-Store all output: same as in main.simulation, but name files with parameters
-*/
+/** Runs the non-ostensive simulations
+ *
+ *  Sets up the settings to run simulations
+ *  Runs the simulations
+ *  Saves datafiles of simulations automatically
+ */
 object RunAdaptiveExperiment extends App{
 
-	val signals = Set("S1", "S2", "S3").map(StringSignal)
-	val referents = Set("R1", "R2").map(StringReferent)
+	val signals = Set("S1", "S2", "S3", "S4").map(StringSignal)
+	val referents = Set("R1", "R2", "S4").map(StringReferent)
 	val allLexicons = Lexicon.allConsistentLexicons(signals, referents)
 
 	util.Random.setSeed(1000L)

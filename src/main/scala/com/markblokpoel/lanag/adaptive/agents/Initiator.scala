@@ -6,6 +6,22 @@ import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.Implicits._
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
+/** The non-ostensive initiator agent
+ *
+ *  @param order Order of reasoning
+ *  @param signals Set of possible signals
+ *  @param referents Set of possible referents
+ *  @param intendedReferent The referent this agent should communicate
+ *  @param previousSignal The signal communicated last turn
+ *  @param history List of pairs of signals: the conversation history so far
+ *  @param allLexicons Set of all possible lexicons
+ *  @param lexiconPriors Distribution of Lexicon Priors
+ *  @param signalPriors Distribution of Signal Priors
+ *  @param referentPriors Distribution of Referent Priors
+ *  @param signalCosts Map of signal costs per signal
+ *  @param beta beta parameter value
+ *  @param entropyThreshold Entropy threshold value
+ */
 case class Initiator(order: Int,
                      signals: Set[StringSignal],
                      referents: Set[StringReferent],
@@ -21,9 +37,18 @@ case class Initiator(order: Int,
                      entropyThreshold: BigNatural)
   extends AdaptiveAgent(order, referents, history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta) {
 
+  /** Sets up the next intention
+   *
+   *  @param intention the intention to be communicated next
+   *  @return the non-ostensive initiator that will communicate
+   */
   def nextIntention(intention: StringReferent): Initiator =
     Initiator(order, signals, referents, intention, None, history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
 
+  /** Performs the inital speaking turn of the non-ostensive initiator
+   *  Is used at the start of each dialogue
+   *  @return The signal communicated, the initiator with this speak stored, and the data from this interaction
+   */
   def initialSpeak: (MetaSignal, Initiator, InitialInitiatorData) = {
     val posteriorSignalDistribution = s.pr(intendedReferent)
 
@@ -37,6 +62,13 @@ case class Initiator(order: Int,
     (metaSignal, updatedAgent, initiatorData)
   }
 
+  /** Performs all turns that are not the initial turn
+   *
+   *  Consists of listening (interpreting) the received input
+   *  And responding to this
+   *  @param observedSignal The signal observed from the responder
+   *  @return The signal communicated, the initiator with this dialogue stored, and the data from this interaction
+   */
   override def listenAndRespond(observedSignal: StringSignal): (MetaSignal, Initiator, InitiatorData) = {
     require(previousSignal.isDefined, "[Initiator] Cannot listenAndRespond when I have no previousSignal.")
 
@@ -52,7 +84,7 @@ case class Initiator(order: Int,
       // I believe I was misunderstood, or I don't really understand you.
       // speak part
       val intermediateAgent = Initiator(order, signals, referents, intendedReferent, None, (previousSignal.get, observedSignal) :: history, allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta, entropyThreshold)
-//      println("Speak\n"+intermediateAgent.s)
+
       val posteriorSignalDistribution = intermediateAgent.s.pr(intendedReferent)
       // we ignore entropy
       val inferredSignal = posteriorSignalDistribution.sample
@@ -64,6 +96,9 @@ case class Initiator(order: Int,
   }
 }
 
+/** Creates a non-ostensive initiator with default Distribution priors and signal costs
+ *
+ */
 case object Initiator {
   def apply(order: Int,
             signals: Set[StringSignal],

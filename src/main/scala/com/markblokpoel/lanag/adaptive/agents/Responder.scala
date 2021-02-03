@@ -6,6 +6,20 @@ import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.Implicits._
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
+/** The non-ostensive responder agent
+ *
+ *  @param order Order of reasoning
+ *  @param signals Set of possible signals
+ *  @param referents Set of possible referents
+ *  @param history List of pairs of signals: the conversation history so far
+ *  @param allLexicons Set of all possible lexicons
+ *  @param lexiconPriors Distribution of Lexicon Priors
+ *  @param signalPriors Distribution of Signal Priors
+ *  @param referentPriors Distribution of Referent Priors
+ *  @param signalCosts Map of signal costs per signal
+ *  @param beta beta parameter value
+ *  @param entropyThreshold Entropy threshold value
+ */
 case class Responder(order: Int,
                      signals: Set[StringSignal],
                      referents: Set[StringReferent],
@@ -19,6 +33,13 @@ case class Responder(order: Int,
                      entropyThreshold: BigNatural)
   extends AdaptiveAgent(order, referents, history ,allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta) {
 
+  /** Performs all turns for the responder
+   *
+   *  Consists of listening (interpreting) the received input
+   *  And responding to this
+   *  @param observedSignal the signal observed from the Initiator
+   *  @return The signal communicated, the responder with this dialogue stored, and the data from this interaction
+   */
   override def listenAndRespond(observedSignal: StringSignal): (MetaSignal, Responder, ResponderData) = {
     // listen part
     val posteriorReferentDistribution = l.pr(observedSignal)
@@ -44,6 +65,9 @@ case class Responder(order: Int,
   }
 }
 
+/** Creates a non-ostensive responder with default Distribution priors and signal costs
+ *
+ */
 case object Responder {
   def apply(order: Int,
             signals: Set[StringSignal],

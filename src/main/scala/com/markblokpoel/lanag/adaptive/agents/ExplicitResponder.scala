@@ -6,6 +6,20 @@ import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.Implicits._
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
+/** The ostensive responder agent
+ *
+ *  @param order Order of reasoning
+ *  @param signals Set of possible signals
+ *  @param referents Set of possible referents
+ *  @param history List of pair of a signal and a referent: the conversation history so far
+ *  @param allLexicons Set of all possible lexicons
+ *  @param lexiconPriors Distribution of Lexicon Priors
+ *  @param signalPriors Distribution of Signal Priors
+ *  @param referentPriors Distribution of Referent Priors
+ *  @param signalCosts Map of signal costs per signal
+ *  @param beta beta parameter value
+ *  @param entropyThreshold Entropy threshold value
+ */
 case class ExplicitResponder (order: Int,
 												 signals: Set[StringSignal],
 												 referents: Set[StringReferent],
@@ -19,7 +33,15 @@ case class ExplicitResponder (order: Int,
 												 entropyThreshold: BigNatural)
 	extends ExplicitAgent(order, history ,allLexicons, lexiconPriors, signalPriors, referentPriors, signalCosts, beta) {
 
-def listenAndRespond(observedSignal: StringSignal): (MetaSignal, StringReferent, ExplicitResponder, ResponderData) = {
+	/** Performs all turns for the responder
+	 *
+	 *  Consists of listening (interpreting) the received input
+	 *  And responding to this
+	 *
+	 *  @param observedSignal The signal observed from the ostensive initiator
+	 *  @return The signal communicated, the responder with this dialogue stored, and the data from this interaction
+	 */
+	def listenAndRespond(observedSignal: StringSignal): (MetaSignal, StringReferent, ExplicitResponder, ResponderData) = {
 		// listen part
 		val posteriorReferentDistribution = l.pr(observedSignal)
 		val listenEntropy = posteriorReferentDistribution.entropy
@@ -44,6 +66,10 @@ def listenAndRespond(observedSignal: StringSignal): (MetaSignal, StringReferent,
 	}
 }
 
+
+/** Creates an ostensive responder with default Distribution priors and signal costs
+ *
+ */
 case object ExplicitResponder {
 	def apply(order: Int,
 						signals: Set[StringSignal],
