@@ -5,10 +5,10 @@ updateOptions := updateOptions.value.withCachedResolution(false)
 
 lazy val commonSettings = Seq(
   name := repo,
-  scalaVersion := "2.12.8",
+  scalaVersion := "2.12.15",
   organization := s"com.markblokpoel",
   description := "This is an implementation of adaptive agents for the Lanag agent-based simulation framework.",
-  crossScalaVersions := Seq("2.12.8"),
+  crossScalaVersions := Seq("2.12.15"),
   crossVersion := CrossVersion.binary,
   resolvers ++= Seq(
     "jitpack" at "https://jitpack.io"
@@ -17,7 +17,7 @@ lazy val commonSettings = Seq(
   libraryDependencies ++= Seq(
     "org.apache.spark" %% "spark-core" % "2.4.1" % Provided,
     "org.apache.spark" %% "spark-sql" % "2.4.1" % Provided,
-    "com.typesafe" % "config" % "1.3.3",
+    "com.github.pureconfig" %% "pureconfig" % "0.17.1",
     "com.markblokpoel" %% "lanag-core" % "0.3.8"
   ),
   // Compile options
