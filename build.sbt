@@ -23,7 +23,8 @@ lazy val commonSettings = Seq(
   // Compile options
   updateImpactOpenBrowser := false,
   compile in Compile := (compile in Compile).dependsOn(formatAll).value,
-  mainClass in assembly := Some("com.markblokpoel.lanag.adaptive.DefaultMain"),
+  mainClass in assembly := Some(
+    "com.markblokpoel.lanag.adaptive.MainSimulation"),
   test in Test := (test in Test).dependsOn(checkFormat).value,
   formatAll := {
     (scalafmt in Compile).value
@@ -45,7 +46,6 @@ lazy val root = (project in file("."))
   .enablePlugins(SiteScaladocPlugin)
   .enablePlugins(GhpagesPlugin)
   .dependsOn(probability4scala)
-
 
 lazy val probability4scala = RootProject(
   uri("https://github.com/markblokpoel/probability4scala.git#master")

@@ -11,43 +11,45 @@ import com.markblokpoel.lanag.adaptive.atoms._
 import com.markblokpoel.lanag.adaptive.storage.InteractionData
 
 case object RunAdaptiveExperiment {
+
   /**
-   *  Runs the non-ostensive simulations
-   *
-   *  Sets up the settings to run simulations
-   *  Runs the simulations
-   *  Saves datafiles of simulations automatically
-   *
-   * @param nrSignals The number of signals in the lexicons.
-   * @param nrReferents The number of referents in the lexicons.
-   * @param nrPairs The number of pairs of agents to be simulated.
-   * @param maxTurns The number of interactions (back and forth) agents make per referent.
-   * @param nrRounds The number of referents the agents try to communicate about.
-   * @param entropyThreshold The minimum entropy agents need to reach certainty of inferences.
-   * @param order The order of pragmatic inference agents use.
-   * @param costs The cost of signals.
-   * @param betaOptions The beta (rationality) parameter for Bayesian inference / softargmax.
-   * @param distributionOptions The binomial distribution parameters.
-   * @param randomSeed The random seed (optional).
-   */
+    *  Runs the non-ostensive simulations
+    *
+    *  Sets up the settings to run simulations
+    *  Runs the simulations
+    *  Saves datafiles of simulations automatically
+    *
+    * @param nrSignals The number of signals in the lexicons.
+    * @param nrReferents The number of referents in the lexicons.
+    * @param nrPairs The number of pairs of agents to be simulated.
+    * @param maxTurns The number of interactions (back and forth) agents make per referent.
+    * @param nrRounds The number of referents the agents try to communicate about.
+    * @param entropyThreshold The minimum entropy agents need to reach certainty of inferences.
+    * @param order The order of pragmatic inference agents use.
+    * @param costs The cost of signals.
+    * @param betaOptions The beta (rationality) parameter for Bayesian inference / softargmax.
+    * @param distributionOptions The binomial distribution parameters.
+    * @param randomSeed The random seed (optional).
+    */
   def run(
-         nrSignals: Int,
-         nrReferents: Int,
-         nrPairs: Int,
-         maxTurns: Int,
-         nrRounds: Int,
-         entropyThreshold: BigNatural,
-         order: Int,
-         costs: BigNatural,
-         betaOptions: List[BigNatural],
-         distributionOptions: List[Double],
-         randomSeed: Option[Long] = None
-        ): Unit = {
+      nrSignals: Int,
+      nrReferents: Int,
+      nrPairs: Int,
+      maxTurns: Int,
+      nrRounds: Int,
+      entropyThreshold: BigNatural,
+      order: Int,
+      costs: BigNatural,
+      betaOptions: List[BigNatural],
+      distributionOptions: List[Double],
+      randomSeed: Option[Long] = None
+  ): Unit = {
     val signals = (1 to nrSignals).map(s => s"S$s").toSet.map(StringSignal)
-    val referents = (1 to nrReferents).map(s => s"R$s").toSet.map(StringReferent)
+    val referents =
+      (1 to nrReferents).map(s => s"R$s").toSet.map(StringReferent)
     val allLexicons = Lexicon.allConsistentLexicons(signals, referents)
 
-    if(randomSeed.isDefined) util.Random.setSeed(randomSeed.get)
+    if (randomSeed.isDefined) util.Random.setSeed(randomSeed.get)
 
     for (beta <- betaOptions) {
       for (distribution <- distributionOptions) {
@@ -88,10 +90,10 @@ case object RunAdaptiveExperiment {
           )
 
           val interaction = AdaptiveInteraction(referents,
-            initiator,
-            responder,
-            maxTurns,
-            nrRounds)
+                                                initiator,
+                                                responder,
+                                                maxTurns,
+                                                nrRounds)
 
           pair -> interaction
         }).toParArray
@@ -100,11 +102,13 @@ case object RunAdaptiveExperiment {
           .map(interaction => interaction._1 -> interaction._2.toList)
           .toList
 
-        val parameters =
-          s"l${signals.size}x${referents.size}_a${nrPairs}_b${beta}_d$distribution"
+       // Create output folder if it doesn't exist
+        val outputFolderRoot = MainSimulation.outputFolderRoot(nrSignals, nrReferents, nrPairs)
+        val outputFolder = outputFolderRoot + "/adaptive/" + s"B${beta}_D${distribution}/"
+        new File(outputFolder).mkdirs()
 
         val pwt = new PrintWriter(
-          new File("output/datafiles/results_turns_" + parameters + ".csv"))
+          new File(s"${outputFolder}/results_turns.csv"))
         pwt.println(
           "pair;round;turn;initiatorIntention;initiatorSignal;responderInference;responderSignal;entropyInitiatorListen;entropyResponderListen;entropyInitiatorLexicon;entropyResponderLexicon;KLDivItoR;KLDivRtoI;posteriorInitiator;posteriorResponder")
         allData.foreach(pairData => {
@@ -120,7 +124,8 @@ case object RunAdaptiveExperiment {
             val restTurnsI = roundData.initiatorData
             val restTurnsR = roundData.responderData.tail
             for (turn <- 0 until math.max(restTurnsI.size, restTurnsR.size)) {
-              if (restTurnsI.isDefinedAt(turn) && restTurnsR.isDefinedAt(turn)) {
+              if (restTurnsI.isDefinedAt(turn) && restTurnsR
+                    .isDefinedAt(turn)) {
                 val turni = restTurnsI(turn)
                 val turnr = restTurnsR(turn)
                 val turnklItoR = roundData.klInitiatorToResponder(turn)
@@ -138,7 +143,7 @@ case object RunAdaptiveExperiment {
         pwt.close()
 
         val pwr = new PrintWriter(
-          new File("output/datafiles/results_rounds_" + parameters + ".csv"))
+          new File(s"${outputFolder}/results_rounds.csv"))
         pwr.println("pair;round;nrTurns;success")
         allData.foreach(pairData => {
           val pair: Int = pairData._1
@@ -153,7 +158,7 @@ case object RunAdaptiveExperiment {
         pwr.close()
 
         val pwc = new PrintWriter(
-          new File("output/datafiles/config_" + parameters + ".csv"))
+          new File(s"${outputFolder}/parameters.csv"))
         pwc.println(
           "agentPairs;maxTurns;roundsPlayed;beta;entropyThreshold;order;costs;initiatorDistribution;responderDistribution")
         pwc.println(
