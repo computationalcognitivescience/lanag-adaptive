@@ -11,6 +11,7 @@ case class SimConf(
                     costs: Double,
                     betaOptions: List[Double],
                     distributionOptions: List[Double],
-                    simulationTypes: List[String],
+                    ostensiveSim: Boolean,
+                    nonOstensiveSim: Boolean,
                     randomSeed: Option[Long]
                   )

@@ -49,7 +49,6 @@ case class ExplicitInteraction(referents: Set[StringReferent],
 		var initiatorMetaSignal = initialMetaSignal
 
 		while(!done) {
-			print(s"r$round/t$turn\r")
 			// Responder
 			val (responderMetaSignal, responderExplicitReferent, updatedResponder, responderData) = responder.listenAndRespond(initiatorMetaSignal.getSignal)
 			responder = updatedResponder

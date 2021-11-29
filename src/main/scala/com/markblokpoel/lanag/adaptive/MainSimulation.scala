@@ -6,19 +6,18 @@ import pureconfig._
 import pureconfig.generic.auto._
 
 
-/** Runs the adaptive model, old version
- *
- */
+/**
+  *
+  */
 object MainSimulation extends App {
   // Read configuration
   val source = ConfigSource.file("src/main/resources/application.conf")
   val config = source.load[SimConf]
 
   // Run experiments
-
   config match {
     case Right(conf) =>
-      if(conf.simulationTypes.contains("non-ostensive"))
+      if(conf.nonOstensiveSim)
         RunAdaptiveExperiment.run(
           conf.nrSignals,
           conf.nrReferents,
@@ -32,7 +31,7 @@ object MainSimulation extends App {
           conf.distributionOptions,
           conf.randomSeed
         )
-      if(conf.simulationTypes.contains("ostensive"))
+      if(conf.ostensiveSim)
         RunExplicitExperiment.run(
           conf.nrSignals,
           conf.nrReferents,
@@ -49,6 +48,5 @@ object MainSimulation extends App {
     case Left(failures) =>
       // cannot read config, print error
       println("Cannot read configuration file.\n" + failures.toList.mkString("\n"))
-
   }
 }
