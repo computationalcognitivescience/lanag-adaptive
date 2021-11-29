@@ -18,17 +18,17 @@ case object RunAdaptiveExperiment {
    *  Runs the simulations
    *  Saves datafiles of simulations automatically
    *
-   * @param nrSignals
-   * @param nrReferents
-   * @param nrPairs
-   * @param maxTurns
-   * @param nrRounds
-   * @param entropyThreshold
-   * @param order
-   * @param costs
-   * @param betaOptions
-   * @param distributionOptions
-   * @param randomSeed
+   * @param nrSignals The number of signals in the lexicons.
+   * @param nrReferents The number of referents in the lexicons.
+   * @param nrPairs The number of pairs of agents to be simulated.
+   * @param maxTurns The number of interactions (back and forth) agents make per referent.
+   * @param nrRounds The number of referents the agents try to communicate about.
+   * @param entropyThreshold The minimum entropy agents need to reach certainty of inferences.
+   * @param order The order of pragmatic inference agents use.
+   * @param costs The cost of signals.
+   * @param betaOptions The beta (rationality) parameter for Bayesian inference / softargmax.
+   * @param distributionOptions The binomial distribution parameters.
+   * @param randomSeed The random seed (optional).
    */
   def run(
          nrSignals: Int,
