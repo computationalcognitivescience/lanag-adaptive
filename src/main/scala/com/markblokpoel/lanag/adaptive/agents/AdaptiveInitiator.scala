@@ -27,19 +27,19 @@ import com.markblokpoel.probability4scala.datastructures.BigNatural
   *  @param beta beta parameter value
   *  @param entropyThreshold Entropy threshold value
   */
-case class Initiator(order: Int,
-                     signals: Set[StringSignal],
-                     referents: Set[StringReferent],
-                     intendedReferent: StringReferent,
-                     previousSignal: Option[StringSignal],
-                     history: List[(StringSignal, StringSignal)],
-                     allLexicons: Set[Lexicon],
-                     lexiconPriors: Distribution[Lexicon],
-                     signalPriors: Distribution[StringSignal],
-                     referentPriors: Distribution[StringReferent],
-                     signalCosts: Map[StringSignal, BigNatural],
-                     beta: BigNatural,
-                     entropyThreshold: BigNatural)
+case class AdaptiveInitiator(order: Int,
+                             signals: Set[StringSignal],
+                             referents: Set[StringReferent],
+                             intendedReferent: StringReferent,
+                             previousSignal: Option[StringSignal],
+                             history: List[(StringSignal, StringSignal)],
+                             allLexicons: Set[Lexicon],
+                             lexiconPriors: Distribution[Lexicon],
+                             signalPriors: Distribution[StringSignal],
+                             referentPriors: Distribution[StringReferent],
+                             signalCosts: Map[StringSignal, BigNatural],
+                             beta: BigNatural,
+                             entropyThreshold: BigNatural)
     extends AdaptiveAgent(order,
                           referents,
                           history,
@@ -55,8 +55,8 @@ case class Initiator(order: Int,
     *  @param intention the intention to be communicated next
     *  @return the non-ostensive initiator that will communicate
     */
-  def nextIntention(intention: StringReferent): Initiator =
-    Initiator(order,
+  def nextIntention(intention: StringReferent): AdaptiveInitiator =
+    AdaptiveInitiator(order,
               signals,
               referents,
               intention,
@@ -74,14 +74,14 @@ case class Initiator(order: Int,
     *  Is used at the start of each dialogue
     *  @return The signal communicated, the initiator with this speak stored, and the data from this interaction
     */
-  def initialSpeak: (MetaSignal, Initiator, InitialInitiatorData) = {
+  def initialSpeak: (MetaSignal, AdaptiveInitiator, InitialInitiatorData) = {
     val posteriorSignalDistribution = s.pr(intendedReferent)
 
     // we ignore entropy
     val inferredSignal = posteriorSignalDistribution.sample
 
     val metaSignal = MetaSignal(Some(inferredSignal))
-    val updatedAgent = Initiator(
+    val updatedAgent = AdaptiveInitiator(
       order,
       signals,
       referents,
@@ -112,10 +112,10 @@ case class Initiator(order: Int,
     *  @return The signal communicated, the initiator with this dialogue stored, and the data from this interaction
     */
   override def listenAndRespond(
-      observedSignal: StringSignal): (MetaSignal, Initiator, InitiatorData) = {
+      observedSignal: StringSignal): (MetaSignal, AdaptiveInitiator, InitiatorData) = {
     require(
       previousSignal.isDefined,
-      "[Initiator] Cannot listenAndRespond when I have no previousSignal.")
+      "[AdaptiveInitiator] Cannot listenAndRespond when I have no previousSignal.")
 
     // listen part
     val posteriorReferentDistribution = l.pr(observedSignal)
@@ -135,7 +135,7 @@ case class Initiator(order: Int,
     } else {
       // I believe I was misunderstood, or I don't really understand you.
       // speak part
-      val intermediateAgent = Initiator(
+      val intermediateAgent = AdaptiveInitiator(
         order,
         signals,
         referents,
@@ -155,7 +155,7 @@ case class Initiator(order: Int,
       // we ignore entropy
       val inferredSignal = posteriorSignalDistribution.sample
       val metaSignal = MetaSignal(Some(inferredSignal))
-      val updatedAgent = Initiator(
+      val updatedAgent = AdaptiveInitiator(
         order,
         signals,
         referents,
@@ -184,7 +184,7 @@ case class Initiator(order: Int,
 /** Creates a non-ostensive initiator with default Distribution priors and signal costs
   *
   */
-case object Initiator {
+case object AdaptiveInitiator {
   def apply(order: Int,
             signals: Set[StringSignal],
             referents: Set[StringReferent],
@@ -193,12 +193,12 @@ case object Initiator {
             history: List[(StringSignal, StringSignal)],
             allLexicons: Set[Lexicon],
             beta: BigNatural,
-            entropyThreshold: BigNatural): Initiator = {
+            entropyThreshold: BigNatural): AdaptiveInitiator = {
     val signalPriors = signals.uniformDistribution
     val referentPriors = referents.uniformDistribution
     val lexiconPriors = allLexicons.uniformDistribution
     val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
-    Initiator(
+    AdaptiveInitiator(
       order,
       signals,
       referents,

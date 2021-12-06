@@ -1,6 +1,6 @@
 package com.markblokpoel.lanag.adaptive
 
-import com.markblokpoel.lanag.adaptive.agents.{Initiator, Responder}
+import com.markblokpoel.lanag.adaptive.agents.{AdaptiveInitiator, AdaptiveResponder}
 import com.markblokpoel.lanag.adaptive.atoms.{MetaSignal, StringReferent}
 import com.markblokpoel.lanag.adaptive.storage.{InitiatorData, InteractionData}
 
@@ -15,8 +15,8 @@ import scala.util.Random
   * @param nrRounds maximum number of dialogues before conversation ends
   */
 case class AdaptiveInteraction(referents: Set[StringReferent],
-                               initialInitiator: Initiator,
-                               initialResponder: Responder,
+                               initialInitiator: AdaptiveInitiator,
+                               initialResponder: AdaptiveResponder,
                                maxTurns: Int,
                                nrRounds: Int)
     extends Iterator[InteractionData] {
@@ -72,7 +72,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
           initiator.lexiconLikelihoodDistribution)
         interactionData = interactionData.addKLDivergence(klItoR, klRtoI)
         // Initiator
-        val result: (MetaSignal, Initiator, InitiatorData) =
+        val result: (MetaSignal, AdaptiveInitiator, InitiatorData) =
           initiator.listenAndRespond(responderMetaSignal.getSignal)
         initiatorMetaSignal = result._1
         initiator = result._2

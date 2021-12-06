@@ -4,7 +4,7 @@ import com.markblokpoel.probability4scala.datastructures.BigNatural
 import com.markblokpoel.probability4scala.Implicits._
 import java.io._
 
-import com.markblokpoel.lanag.adaptive.agents.{Initiator, Responder}
+import com.markblokpoel.lanag.adaptive.agents.{AdaptiveInitiator, AdaptiveResponder}
 import com.markblokpoel.lanag.adaptive.atoms._
 import com.markblokpoel.lanag.adaptive.storage.InteractionData
 
@@ -29,7 +29,7 @@ object MainSimulation extends App {
   val costs = 0.toBigNatural
 
   val interactionsParallelized = (for (pair <- 0 until nrPairs) yield {
-    val initiator = Initiator(
+    val initiator = AdaptiveInitiator(
       order,
       signals,
       referents,
@@ -45,7 +45,7 @@ object MainSimulation extends App {
       entropyThreshold
     )
 
-    val responder = Responder(
+    val responder = AdaptiveResponder(
       order,
       signals,
       referents,

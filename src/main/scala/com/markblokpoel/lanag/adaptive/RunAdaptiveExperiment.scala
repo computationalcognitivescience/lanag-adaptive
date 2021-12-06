@@ -6,7 +6,7 @@ import com.markblokpoel.probability4scala.Implicits._
 import scala.util.Random
 import java.io._
 
-import com.markblokpoel.lanag.adaptive.agents.{Initiator, Responder}
+import com.markblokpoel.lanag.adaptive.agents.{AdaptiveInitiator, AdaptiveResponder}
 import com.markblokpoel.lanag.adaptive.atoms._
 import com.markblokpoel.lanag.adaptive.storage.InteractionData
 
@@ -43,7 +43,7 @@ object RunAdaptiveExperiment extends App {
         allLexicons.binomialDistribution(BigNatural(1 - distribution))
       val firstReferent = referents.toList(Random.nextInt(referents.size))
       val interactionsParallelized = (for (pair <- 0 until nrPairs) yield {
-        val initiator = Initiator(
+        val initiator = AdaptiveInitiator(
           order,
           signals,
           referents,
@@ -59,7 +59,7 @@ object RunAdaptiveExperiment extends App {
           entropyThreshold
         )
 
-        val responder = Responder(
+        val responder = AdaptiveResponder(
           order,
           signals,
           referents,

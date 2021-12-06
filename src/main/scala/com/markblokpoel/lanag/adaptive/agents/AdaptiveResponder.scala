@@ -25,17 +25,17 @@ import com.markblokpoel.probability4scala.datastructures.BigNatural
   *  @param beta beta parameter value
   *  @param entropyThreshold Entropy threshold value
   */
-case class Responder(order: Int,
-                     signals: Set[StringSignal],
-                     referents: Set[StringReferent],
-                     history: List[(StringSignal, StringSignal)],
-                     allLexicons: Set[Lexicon],
-                     lexiconPriors: Distribution[Lexicon],
-                     signalPriors: Distribution[StringSignal],
-                     referentPriors: Distribution[StringReferent],
-                     signalCosts: Map[StringSignal, BigNatural],
-                     beta: BigNatural,
-                     entropyThreshold: BigNatural)
+case class AdaptiveResponder(order: Int,
+                             signals: Set[StringSignal],
+                             referents: Set[StringReferent],
+                             history: List[(StringSignal, StringSignal)],
+                             allLexicons: Set[Lexicon],
+                             lexiconPriors: Distribution[Lexicon],
+                             signalPriors: Distribution[StringSignal],
+                             referentPriors: Distribution[StringReferent],
+                             signalCosts: Map[StringSignal, BigNatural],
+                             beta: BigNatural,
+                             entropyThreshold: BigNatural)
     extends AdaptiveAgent(order,
                           referents,
                           history,
@@ -54,7 +54,7 @@ case class Responder(order: Int,
     *  @return The signal communicated, the responder with this dialogue stored, and the data from this interaction
     */
   override def listenAndRespond(
-      observedSignal: StringSignal): (MetaSignal, Responder, ResponderData) = {
+      observedSignal: StringSignal): (MetaSignal, AdaptiveResponder, ResponderData) = {
     // listen part
     val posteriorReferentDistribution = l.pr(observedSignal)
     val listenEntropy = posteriorReferentDistribution.entropy
@@ -76,7 +76,7 @@ case class Responder(order: Int,
       val inferredSignal = posteriorSignalDistribution.sample
       val metaSignal = MetaSignal(Some(inferredSignal))
 
-      val updatedResponder = Responder(
+      val updatedResponder = AdaptiveResponder(
         order,
         signals,
         referents,
@@ -104,19 +104,19 @@ case class Responder(order: Int,
 /** Creates a non-ostensive responder with default Distribution priors and signal costs
   *
   */
-case object Responder {
+case object AdaptiveResponder {
   def apply(order: Int,
             signals: Set[StringSignal],
             referents: Set[StringReferent],
             history: List[(StringSignal, StringSignal)],
             allLexicons: Set[Lexicon],
             beta: BigNatural,
-            entropyThreshold: BigNatural): Responder = {
+            entropyThreshold: BigNatural): AdaptiveResponder = {
     val signalPriors = signals.uniformDistribution
     val referentPriors = referents.uniformDistribution
     val lexiconPriors = allLexicons.uniformDistribution
     val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
-    Responder(order,
+    AdaptiveResponder(order,
               signals,
               referents,
               history,
