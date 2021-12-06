@@ -46,7 +46,6 @@ lazy val root = (project in file("."))
   .enablePlugins(GhpagesPlugin)
   .dependsOn(probability4scala)
 
-
 lazy val probability4scala = RootProject(
   uri("https://github.com/markblokpoel/probability4scala.git#master")
 )
