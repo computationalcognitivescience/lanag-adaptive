@@ -53,8 +53,8 @@ case class AdaptiveResponder(order: Int,
     *  @param observedSignal the signal observed from the Initiator
     *  @return The signal communicated, the responder with this dialogue stored, and the data from this interaction
     */
-  override def listenAndRespond(
-      observedSignal: StringSignal): (MetaSignal, AdaptiveResponder, ResponderData) = {
+  override def listenAndRespond(observedSignal: StringSignal)
+    : (MetaSignal, AdaptiveResponder, AdaptiveResponderData) = {
     // listen part
     val posteriorReferentDistribution = l.pr(observedSignal)
     val listenEntropy = posteriorReferentDistribution.entropy
@@ -62,13 +62,15 @@ case class AdaptiveResponder(order: Int,
 
     if (listenEntropy <= entropyThreshold) {
       // I'm quite certain I understood what you intended. We're done.
+//      println(s"responder_end: ${this.history}")
       (MetaSignal(None),
        this,
-       ResponderData(inferredReferent,
-                     MetaSignal(None),
-                     listenEntropy,
-                     posteriorReferentDistribution,
-                     lexiconLikelihoodDistribution.entropy))
+       AdaptiveResponderData(inferredReferent,
+                             MetaSignal(None),
+                             listenEntropy,
+                             posteriorReferentDistribution,
+                             lexiconLikelihoodDistribution.entropy,
+                             this.history))
     } else {
       // I'm not quite certain, I'm gonna try to confirm
       // speak part
@@ -89,12 +91,14 @@ case class AdaptiveResponder(order: Int,
         beta,
         entropyThreshold
       )
-
-      val responderData = ResponderData(inferredReferent,
-                                        metaSignal,
-                                        listenEntropy,
-                                        posteriorReferentDistribution,
-                                        lexiconLikelihoodDistribution.entropy)
+//      println(s"responder: ${updatedResponder.history}")
+      val responderData = AdaptiveResponderData(
+        inferredReferent,
+        metaSignal,
+        listenEntropy,
+        posteriorReferentDistribution,
+        lexiconLikelihoodDistribution.entropy,
+        updatedResponder.history)
 
       (metaSignal, updatedResponder, responderData)
     }
@@ -117,15 +121,15 @@ case object AdaptiveResponder {
     val lexiconPriors = allLexicons.uniformDistribution
     val signalCosts = signals.map(_ -> 0.toBigNatural).toMap
     AdaptiveResponder(order,
-              signals,
-              referents,
-              history,
-              allLexicons,
-              lexiconPriors,
-              signalPriors,
-              referentPriors,
-              signalCosts,
-              beta,
-              entropyThreshold)
+                      signals,
+                      referents,
+                      history,
+                      allLexicons,
+                      lexiconPriors,
+                      signalPriors,
+                      referentPriors,
+                      signalCosts,
+                      beta,
+                      entropyThreshold)
   }
 }

@@ -57,18 +57,18 @@ case class AdaptiveInitiator(order: Int,
     */
   def nextIntention(intention: StringReferent): AdaptiveInitiator =
     AdaptiveInitiator(order,
-              signals,
-              referents,
-              intention,
-              None,
-              history,
-              allLexicons,
-              lexiconPriors,
-              signalPriors,
-              referentPriors,
-              signalCosts,
-              beta,
-              entropyThreshold)
+                      signals,
+                      referents,
+                      intention,
+                      None,
+                      history,
+                      allLexicons,
+                      lexiconPriors,
+                      signalPriors,
+                      referentPriors,
+                      signalCosts,
+                      beta,
+                      entropyThreshold)
 
   /** Performs the inital speaking turn of the non-ostensive initiator
     *  Is used at the start of each dialogue
@@ -111,8 +111,8 @@ case class AdaptiveInitiator(order: Int,
     *  @param observedSignal The signal observed from the responder
     *  @return The signal communicated, the initiator with this dialogue stored, and the data from this interaction
     */
-  override def listenAndRespond(
-      observedSignal: StringSignal): (MetaSignal, AdaptiveInitiator, InitiatorData) = {
+  override def listenAndRespond(observedSignal: StringSignal)
+    : (MetaSignal, AdaptiveInitiator, AdaptiveInitiatorData) = {
     require(
       previousSignal.isDefined,
       "[AdaptiveInitiator] Cannot listenAndRespond when I have no previousSignal.")
@@ -124,14 +124,33 @@ case class AdaptiveInitiator(order: Int,
 
     if (listenEntropy <= entropyThreshold && inferredReferent == intendedReferent) {
       // I'm quite certain of the inference and I believe we have mutual understanding. We're done
+      val intermediateAgent = AdaptiveInitiator(
+        order,
+        signals,
+        referents,
+        intendedReferent,
+        None,
+        (previousSignal.get, observedSignal) :: history,
+        allLexicons,
+        lexiconPriors,
+        signalPriors,
+        referentPriors,
+        signalCosts,
+        beta,
+        entropyThreshold
+      )
+//      println(s"initiator_end: ${intermediateAgent.history}")
       (MetaSignal(None),
-       this,
-       InitiatorData(intendedReferent,
-                     inferredReferent,
-                     MetaSignal(None),
-                     listenEntropy,
-                     posteriorReferentDistribution,
-                     lexiconLikelihoodDistribution.entropy))
+       intermediateAgent,
+       AdaptiveInitiatorData(
+         intendedReferent,
+         inferredReferent,
+         MetaSignal(None),
+         listenEntropy,
+         posteriorReferentDistribution,
+         lexiconLikelihoodDistribution.entropy,
+         intermediateAgent.history
+       ))
     } else {
       // I believe I was misunderstood, or I don't really understand you.
       // speak part
@@ -170,12 +189,15 @@ case class AdaptiveInitiator(order: Int,
         beta,
         entropyThreshold
       )
-      val initiatorData = InitiatorData(intendedReferent,
-                                        inferredReferent,
-                                        metaSignal,
-                                        listenEntropy,
-                                        posteriorReferentDistribution,
-                                        lexiconLikelihoodDistribution.entropy)
+//      println(s"initiator: ${updatedAgent.history}")
+      val initiatorData = AdaptiveInitiatorData(
+        intendedReferent,
+        inferredReferent,
+        metaSignal,
+        listenEntropy,
+        posteriorReferentDistribution,
+        lexiconLikelihoodDistribution.entropy,
+        this.history)
       (metaSignal, updatedAgent, initiatorData)
     }
   }

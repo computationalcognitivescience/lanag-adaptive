@@ -12,51 +12,54 @@ import com.markblokpoel.probability4scala.datastructures.BigNatural
   *  @param klInitiatorToResponder KL-divergence between initiator lexicon distribution and responder lexicon distribution, all other turns
   *  @param klResponderToInitiator KL-divergence between responder lexicon distribution and initiator lexicon distribution, all other turns
   */
-case class InteractionData(initialInitiatorData: InitialInitiatorData,
-                           klInitItoR: BigNatural,
-                           klInitRtoI: BigNatural,
-                           initiatorData: List[InitiatorData],
-                           responderData: List[ResponderData],
-                           klInitiatorToResponder: List[BigNatural],
-                           klResponderToInitiator: List[BigNatural]) {
+case class AdaptiveInteractionData(initialInitiatorData: InitialInitiatorData,
+                                   klInitItoR: BigNatural,
+                                   klInitRtoI: BigNatural,
+                                   initiatorData: List[AdaptiveInitiatorData],
+                                   responderData: List[AdaptiveResponderData],
+                                   klInitiatorToResponder: List[BigNatural],
+                                   klResponderToInitiator: List[BigNatural]) {
 
   /** Adding initiator data to InteractionData
-    *
-    *  @param moreInitiatorData Initiator data
-    *  @return new InteractionData with updated initiator data
-    */
-  def addInitiatorData(moreInitiatorData: InitiatorData): InteractionData =
-    InteractionData(initialInitiatorData,
-                    klInitItoR,
-                    klInitRtoI,
-                    initiatorData :+ moreInitiatorData,
-                    responderData,
-                    klInitiatorToResponder,
-                    klResponderToInitiator)
+	 *
+	 *  @param moreInitiatorData Initiator data
+	 *  @return new InteractionData with updated initiator data
+	 */
+  def addInitiatorData(
+      moreInitiatorData: AdaptiveInitiatorData): AdaptiveInteractionData =
+    AdaptiveInteractionData(initialInitiatorData,
+                            klInitItoR,
+                            klInitRtoI,
+                            initiatorData :+ moreInitiatorData,
+                            responderData,
+                            klInitiatorToResponder,
+                            klResponderToInitiator)
 
   /** Adding responder data to InteractionData
-    *
-    *  @param moreResponderData Responder data
-    *  @return new InteractionData with updated responderdata
-    */
-  def addResponderData(moreResponderData: ResponderData): InteractionData =
-    InteractionData(initialInitiatorData,
-                    klInitItoR,
-                    klInitRtoI,
-                    initiatorData,
-                    responderData :+ moreResponderData,
-                    klInitiatorToResponder,
-                    klResponderToInitiator)
+	 *
+	 *  @param moreResponderData Responder data
+	 *  @return new InteractionData with updated responderdata
+	 */
+  def addResponderData(
+      moreResponderData: AdaptiveResponderData): AdaptiveInteractionData =
+    AdaptiveInteractionData(initialInitiatorData,
+                            klInitItoR,
+                            klInitRtoI,
+                            initiatorData,
+                            responderData :+ moreResponderData,
+                            klInitiatorToResponder,
+                            klResponderToInitiator)
 
   /** Adding KL-divergence information to InteractionData
-    *
-    *  @param initiatorToResponder KL-divergence initiator to responder
-    *  @param responderToInitiator KL-divergence responder to initiator
-    *  @return new InteractionData with updated KL-divergence data
-    */
-  def addKLDivergence(initiatorToResponder: BigNatural,
-                      responderToInitiator: BigNatural): InteractionData =
-    InteractionData(
+	 *
+	 *  @param initiatorToResponder KL-divergence initiator to responder
+	 *  @param responderToInitiator KL-divergence responder to initiator
+	 *  @return new InteractionData with updated KL-divergence data
+	 */
+  def addKLDivergence(
+      initiatorToResponder: BigNatural,
+      responderToInitiator: BigNatural): AdaptiveInteractionData =
+    AdaptiveInteractionData(
       initialInitiatorData,
       klInitItoR,
       klInitRtoI,

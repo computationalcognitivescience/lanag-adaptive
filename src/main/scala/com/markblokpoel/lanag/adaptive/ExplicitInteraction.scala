@@ -5,7 +5,10 @@ import com.markblokpoel.lanag.adaptive.agents.{
   ExplicitResponder
 }
 import com.markblokpoel.lanag.adaptive.atoms.{MetaSignal, StringReferent}
-import com.markblokpoel.lanag.adaptive.storage.{InitiatorData, InteractionData}
+import com.markblokpoel.lanag.adaptive.storage.{
+  ExplicitInitiatorData,
+  ExplicitInteractionData
+}
 
 import scala.util.Random
 
@@ -22,7 +25,7 @@ case class ExplicitInteraction(referents: Set[StringReferent],
                                initialResponder: ExplicitResponder,
                                maxTurns: Int,
                                nrRounds: Int)
-    extends Iterator[InteractionData] {
+    extends Iterator[ExplicitInteractionData] {
 
   private var round = 0
   private var responder = initialResponder
@@ -38,7 +41,7 @@ case class ExplicitInteraction(referents: Set[StringReferent],
 	 *
 	 * @return the data stored during the interaction
 	 */
-  override def next(): InteractionData = {
+  override def next(): ExplicitInteractionData = {
     val randomIntention = referents.toList(Random.nextInt(referents.size))
 
     val klInitItoR = initiator.lexiconLikelihoodDistribution.klDivergence(
@@ -50,13 +53,13 @@ case class ExplicitInteraction(referents: Set[StringReferent],
     var turn = 0
     var done = initialMetaSignal.understood
     initiator = updatedInitiator
-    var interactionData = storage.InteractionData(initialInitiatorData,
-                                                  klInitItoR,
-                                                  klInitRtoI,
-                                                  List.empty,
-                                                  List.empty,
-                                                  List.empty,
-                                                  List.empty)
+    var interactionData = storage.ExplicitInteractionData(initialInitiatorData,
+                                                          klInitItoR,
+                                                          klInitRtoI,
+                                                          List.empty,
+                                                          List.empty,
+                                                          List.empty,
+                                                          List.empty)
     var initiatorMetaSignal = initialMetaSignal
 
     while (!done) {
@@ -78,7 +81,7 @@ case class ExplicitInteraction(referents: Set[StringReferent],
           initiator.lexiconLikelihoodDistribution)
         interactionData = interactionData.addKLDivergence(klItoR, klRtoI)
         // Initiator
-        val result: (MetaSignal, ExplicitInitiator, InitiatorData) =
+        val result: (MetaSignal, ExplicitInitiator, ExplicitInitiatorData) =
           initiator.listenAndRespond(responderMetaSignal.getSignal,
                                      responderExplicitReferent)
         initiatorMetaSignal = result._1
@@ -91,6 +94,8 @@ case class ExplicitInteraction(referents: Set[StringReferent],
     }
 
     round = round + 1
+//    println(s"round: $round")
+
     interactionData
   }
 }

@@ -6,7 +6,7 @@ import com.markblokpoel.lanag.adaptive.atoms.{
   StringReferent,
   StringSignal
 }
-import com.markblokpoel.lanag.adaptive.storage.ResponderData
+import com.markblokpoel.lanag.adaptive.storage.ExplicitResponderData
 import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.Implicits._
 import com.markblokpoel.probability4scala.datastructures.BigNatural
@@ -54,7 +54,7 @@ case class ExplicitResponder(order: Int,
 	 *  @return The signal communicated, the responder with this dialogue stored, and the data from this interaction
 	 */
   def listenAndRespond(observedSignal: StringSignal)
-    : (MetaSignal, StringReferent, ExplicitResponder, ResponderData) = {
+    : (MetaSignal, StringReferent, ExplicitResponder, ExplicitResponderData) = {
     // listen part
     val posteriorReferentDistribution = l.pr(observedSignal)
     val listenEntropy = posteriorReferentDistribution.entropy
@@ -62,14 +62,16 @@ case class ExplicitResponder(order: Int,
 
     if (listenEntropy <= entropyThreshold) {
       // I'm quite certain I understood what you intended. We're done.
+//      println(s"responder_end: ${this.history}")
       (MetaSignal(None),
        inferredReferent,
        this,
-       ResponderData(inferredReferent,
-                     MetaSignal(None),
-                     listenEntropy,
-                     posteriorReferentDistribution,
-                     lexiconLikelihoodDistribution.entropy))
+       ExplicitResponderData(inferredReferent,
+                             MetaSignal(None),
+                             listenEntropy,
+                             posteriorReferentDistribution,
+                             lexiconLikelihoodDistribution.entropy,
+                             this.history))
     } else {
       // I'm not quite certain, I'm gonna try to confirm
       // speak part
@@ -90,12 +92,14 @@ case class ExplicitResponder(order: Int,
         beta,
         entropyThreshold
       )
-
-      val responderData = ResponderData(inferredReferent,
-                                        metaSignal,
-                                        listenEntropy,
-                                        posteriorReferentDistribution,
-                                        lexiconLikelihoodDistribution.entropy)
+//      println(s"responder: ${updatedResponder.history}")
+      val responderData = ExplicitResponderData(
+        inferredReferent,
+        metaSignal,
+        listenEntropy,
+        posteriorReferentDistribution,
+        lexiconLikelihoodDistribution.entropy,
+        updatedResponder.history)
 
       (metaSignal, inferredReferent, updatedResponder, responderData)
     }

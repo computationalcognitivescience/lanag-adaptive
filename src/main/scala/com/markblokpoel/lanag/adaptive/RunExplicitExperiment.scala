@@ -11,7 +11,7 @@ import com.markblokpoel.lanag.adaptive.atoms.{
   StringReferent,
   StringSignal
 }
-import com.markblokpoel.lanag.adaptive.storage.InteractionData
+import com.markblokpoel.lanag.adaptive.storage.ExplicitInteractionData
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 import com.markblokpoel.probability4scala.Implicits._
 
@@ -25,22 +25,22 @@ import scala.util.Random
   */
 object RunExplicitExperiment extends App {
 
-  val signals = Set("S1", "S2").map(StringSignal)
-  val referents = Set("R1", "R2").map(StringReferent)
+  val signals = Set("S1", "S2", "S3", "S4").map(StringSignal)
+  val referents = Set("R1", "R2", "R3").map(StringReferent)
   val allLexicons = Lexicon.allConsistentLexicons(signals, referents)
 
   util.Random.setSeed(1000L)
 
-  val nrPairs = 5
+  val nrPairs = 500
   val maxTurns = 6
   val nrRounds = 6
   val entropyThreshold = 0.8.toBigNatural
   val order = 1
   val costs = 0.toBigNatural
 //	val betaOptions = List(2.toBigNatural, 5.toBigNatural, 10.toBigNatural, 20.toBigNatural)
-//	val distributionOptions = List(0.5, 0.45, 0.4)
+  val distributionOptions = List(0.5, 0.45, 0.4)
   val betaOptions = List(5.toBigNatural)
-  val distributionOptions = List(0.45)
+//  val distributionOptions = List(0.45)
 
   for (beta <- betaOptions) {
     for (distribution <- distributionOptions) {
@@ -94,21 +94,21 @@ object RunExplicitExperiment extends App {
         .toList
 
       val parameters =
-        s"exp_l${signals.size}x${referents.size}_a${nrPairs}_b${beta}_d$distribution"
+        s"exp_l${signals.size}x${referents.size}_a${nrPairs}_b${beta}_d${distribution}"
 
       val pwt = new PrintWriter(
         new File("output/datafiles/results_turns_" + parameters + ".csv"))
       pwt.println(
-        "pair;round;turn;initiatorIntention;initiatorSignal;responderInference;responderSignal;entropyInitiatorListen;entropyResponderListen;entropyInitiatorLexicon;entropyResponderLexicon;KLDivItoR;KLDivRtoI;posteriorInitiator;posteriorResponder")
+        "pair;round;turn;initiatorIntention;initiatorSignal;responderInference;responderSignal;entropyInitiatorListen;entropyResponderListen;entropyInitiatorLexicon;entropyResponderLexicon;KLDivItoR;KLDivRtoI;posteriorInitiator;posteriorResponder;historyInitiator;historyResponder")
       allData.foreach(pairData => {
         val pair: Int = pairData._1
-        val rounds: List[InteractionData] = pairData._2
+        val rounds: List[ExplicitInteractionData] = pairData._2
         rounds.indices.foreach(round => {
-          val roundData: InteractionData = rounds(round)
+          val roundData: ExplicitInteractionData = rounds(round)
           val turn0i = roundData.initialInitiatorData
           val turn0r = roundData.responderData.head
           pwt.println(
-            s"$pair;$round;0;${turn0i.intendedReferent};${turn0i.signal.toString};${turn0r.inferredReferent};${turn0r.signal.toString};NA;${turn0r.listenEntropy};${turn0i.lexiconEntropy};${turn0r.lexiconEntropy};${roundData.klInitItoR};${roundData.klInitRtoI};NA;${turn0r.posteriorResponderDistribution}")
+            s"$pair;$round;0;${turn0i.intendedReferent};${turn0i.signal.toString};${turn0r.inferredReferent};${turn0r.signal.toString};NA;${turn0r.listenEntropy};${turn0i.lexiconEntropy};${turn0r.lexiconEntropy};${roundData.klInitItoR};${roundData.klInitRtoI};NA;${turn0r.posteriorResponderDistribution};NA;${turn0r.history}")
 
           val restTurnsI = roundData.initiatorData
           val restTurnsR = roundData.responderData.tail
@@ -119,11 +119,11 @@ object RunExplicitExperiment extends App {
               val turnklItoR = roundData.klInitiatorToResponder(turn)
               val turnklRtoI = roundData.klResponderToInitiator(turn)
               pwt.println(
-                s"$pair;$round;$turn;${turni.intendedReferent};${turni.signal.toString};${turnr.inferredReferent};${turnr.signal.toString};${turni.listenEntropy};${turnr.listenEntropy};${turni.lexiconEntropy};${turnr.lexiconEntropy};$turnklItoR;$turnklRtoI;${turni.posteriorReferentDistribution};${turnr.posteriorResponderDistribution}")
+                s"$pair;$round;$turn;${turni.intendedReferent};${turni.signal.toString};${turnr.inferredReferent};${turnr.signal.toString};${turni.listenEntropy};${turnr.listenEntropy};${turni.lexiconEntropy};${turnr.lexiconEntropy};$turnklItoR;$turnklRtoI;${turni.posteriorReferentDistribution};${turnr.posteriorResponderDistribution};${turni.history};${turnr.history}")
             } else {
               val turni = restTurnsI(turn)
               pwt.println(
-                s"$pair;$round;$turn;${turni.intendedReferent};${turni.signal.toString};NA;NA;${turni.listenEntropy};NA;${turni.lexiconEntropy};NA;NA;NA;${turni.posteriorReferentDistribution};NA")
+                s"$pair;$round;$turn;${turni.intendedReferent};${turni.signal.toString};NA;NA;${turni.listenEntropy};NA;${turni.lexiconEntropy};NA;NA;NA;${turni.posteriorReferentDistribution};NA;${turni.history}; NA")
             }
           }
         })
@@ -135,7 +135,7 @@ object RunExplicitExperiment extends App {
       pwr.println("pair;round;nrTurns;success")
       allData.foreach(pairData => {
         val pair: Int = pairData._1
-        val rounds: List[InteractionData] = pairData._2
+        val rounds: List[ExplicitInteractionData] = pairData._2
         rounds.indices.foreach(round => {
           val nrTurns = rounds(round).initiatorData.length + 1
           val success = rounds(round).initialInitiatorData.intendedReferent == rounds(

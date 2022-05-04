@@ -1,8 +1,14 @@
 package com.markblokpoel.lanag.adaptive
 
-import com.markblokpoel.lanag.adaptive.agents.{AdaptiveInitiator, AdaptiveResponder}
+import com.markblokpoel.lanag.adaptive.agents.{
+  AdaptiveInitiator,
+  AdaptiveResponder
+}
 import com.markblokpoel.lanag.adaptive.atoms.{MetaSignal, StringReferent}
-import com.markblokpoel.lanag.adaptive.storage.{InitiatorData, InteractionData}
+import com.markblokpoel.lanag.adaptive.storage.{
+  AdaptiveInitiatorData,
+  AdaptiveInteractionData
+}
 
 import scala.util.Random
 
@@ -19,7 +25,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
                                initialResponder: AdaptiveResponder,
                                maxTurns: Int,
                                nrRounds: Int)
-    extends Iterator[InteractionData] {
+    extends Iterator[AdaptiveInteractionData] {
 
   private var round = 0
   private var responder = initialResponder
@@ -35,7 +41,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
     *
     * @return the data stored during the interaction
     */
-  override def next(): InteractionData = {
+  override def next(): AdaptiveInteractionData = {
     val randomIntention = referents.toList(Random.nextInt(referents.size))
 
     val klInitItoR = initiator.lexiconLikelihoodDistribution.klDivergence(
@@ -47,13 +53,13 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
     var turn = 0
     var done = initialMetaSignal.understood
     initiator = updatedInitiator
-    var interactionData = storage.InteractionData(initialInitiatorData,
-                                                  klInitItoR,
-                                                  klInitRtoI,
-                                                  List.empty,
-                                                  List.empty,
-                                                  List.empty,
-                                                  List.empty)
+    var interactionData = storage.AdaptiveInteractionData(initialInitiatorData,
+                                                          klInitItoR,
+                                                          klInitRtoI,
+                                                          List.empty,
+                                                          List.empty,
+                                                          List.empty,
+                                                          List.empty)
     var initiatorMetaSignal = initialMetaSignal
 
     while (!done) {
@@ -72,7 +78,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
           initiator.lexiconLikelihoodDistribution)
         interactionData = interactionData.addKLDivergence(klItoR, klRtoI)
         // Initiator
-        val result: (MetaSignal, AdaptiveInitiator, InitiatorData) =
+        val result: (MetaSignal, AdaptiveInitiator, AdaptiveInitiatorData) =
           initiator.listenAndRespond(responderMetaSignal.getSignal)
         initiatorMetaSignal = result._1
         initiator = result._2
@@ -84,6 +90,7 @@ case class AdaptiveInteraction(referents: Set[StringReferent],
     }
 
     round = round + 1
+//    println(s"round: $round")
     interactionData
   }
 }

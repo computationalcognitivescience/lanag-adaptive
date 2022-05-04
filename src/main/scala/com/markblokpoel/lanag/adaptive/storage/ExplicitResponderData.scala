@@ -1,7 +1,10 @@
 package com.markblokpoel.lanag.adaptive.storage
 
-//import com.markblokpoel.lanag.adaptive.StringReferent
-import com.markblokpoel.lanag.adaptive.atoms.{MetaSignal, StringReferent}
+import com.markblokpoel.lanag.adaptive.atoms.{
+  MetaSignal,
+  StringReferent,
+  StringSignal
+}
 import com.markblokpoel.probability4scala.Distribution
 import com.markblokpoel.probability4scala.datastructures.BigNatural
 
@@ -13,10 +16,11 @@ import com.markblokpoel.probability4scala.datastructures.BigNatural
   *  @param posteriorResponderDistribution Posterior distribution given the inferred referent from the initiator
   *  @param lexiconEntropy Entropy over the lexicon likelihood
   */
-case class ResponderData(
+case class ExplicitResponderData(
     inferredReferent: StringReferent,
     signal: MetaSignal,
     listenEntropy: BigNatural,
     posteriorResponderDistribution: Distribution[StringReferent],
-    lexiconEntropy: BigNatural)
+    lexiconEntropy: BigNatural,
+    history: List[(StringSignal, StringReferent)])
     extends Data

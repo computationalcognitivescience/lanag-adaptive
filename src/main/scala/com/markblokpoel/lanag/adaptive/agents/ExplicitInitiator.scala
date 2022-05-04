@@ -114,7 +114,7 @@ case class ExplicitInitiator(order: Int,
 	 */
   def listenAndRespond(observedSignal: StringSignal,
                        explicitReferent: StringReferent)
-    : (MetaSignal, ExplicitInitiator, InitiatorData) = {
+    : (MetaSignal, ExplicitInitiator, ExplicitInitiatorData) = {
     require(
       previousSignal.isDefined,
       "[ExplicitInitiator] Cannot listenAndRespond when I have no previousSignal.")
@@ -126,14 +126,33 @@ case class ExplicitInitiator(order: Int,
 
     if (listenEntropy <= entropyThreshold && explicitReferent == intendedReferent) {
       // I'm quite certain of the inference and I believe we have mutual understanding. We're done
+      val intermediateAgent = ExplicitInitiator(
+        order,
+        signals,
+        referents,
+        intendedReferent,
+        None,
+        (previousSignal.get, explicitReferent) :: history,
+        allLexicons,
+        lexiconPriors,
+        signalPriors,
+        referentPriors,
+        signalCosts,
+        beta,
+        entropyThreshold
+      )
+//      println(s"initiator_end: ${intermediateAgent.history}")
       (MetaSignal(None),
-       this,
-       InitiatorData(intendedReferent,
-                     explicitReferent,
-                     MetaSignal(None),
-                     listenEntropy,
-                     posteriorReferentDistribution,
-                     lexiconLikelihoodDistribution.entropy))
+       intermediateAgent,
+       ExplicitInitiatorData(
+         intendedReferent,
+         explicitReferent,
+         MetaSignal(None),
+         listenEntropy,
+         posteriorReferentDistribution,
+         lexiconLikelihoodDistribution.entropy,
+         intermediateAgent.history
+       ))
     } else {
       // I believe I was misunderstood, or I don't really understand you.
       // speak part
@@ -172,12 +191,15 @@ case class ExplicitInitiator(order: Int,
         beta,
         entropyThreshold
       )
-      val initiatorData = InitiatorData(intendedReferent,
-                                        explicitReferent,
-                                        metaSignal,
-                                        listenEntropy,
-                                        posteriorReferentDistribution,
-                                        lexiconLikelihoodDistribution.entropy)
+//      println(s"initiator: ${updatedAgent.history}")
+      val initiatorData = ExplicitInitiatorData(
+        intendedReferent,
+        explicitReferent,
+        metaSignal,
+        listenEntropy,
+        posteriorReferentDistribution,
+        lexiconLikelihoodDistribution.entropy,
+        updatedAgent.history)
       (metaSignal, updatedAgent, initiatorData)
     }
   }
